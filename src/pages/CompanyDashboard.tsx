@@ -1,0 +1,836 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import {
+  Building2,
+  Users,
+  Mail,
+  Phone,
+  Plus,
+  Send,
+  Shield,
+  LogOut,
+  Loader2,
+  CheckCircle2,
+  Hash,
+  Trash2,
+  RefreshCw,
+  AlertTriangle,
+} from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+import { sendEmail } from "@/lib/email";
+
+const shareholderSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Please enter a valid email address").max(255),
+  phone: z.string().optional(),
+  sharesHeld: z.number().min(1, "Shares must be at least 1"),
+});
+
+interface Shareholder {
+  id: string;
+  shareholder_name: string;
+  email: string;
+  phone: string | null;
+  shares_held: number;
+  login_id: string;
+  is_credential_used: boolean;
+  credential_created_at: string;
+}
+
+interface Company {
+  id: string;
+  company_name: string;
+}
+
+const CompanyDashboard = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddingShareholder, setIsAddingShareholder] = useState(false);
+  const [isSendingCredentials, setIsSendingCredentials] = useState<string | null>(null);
+  const [isDeletingCompany, setIsDeletingCompany] = useState(false);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [shareholders, setShareholders] = useState<Shareholder[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    sharesHeld: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    checkAuthAndLoadData();
+  }, []);
+
+  const checkAuthAndLoadData = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      navigate("/company-login");
+      return;
+    }
+
+    // Get company admin info
+    const { data: adminData, error: adminError } = await supabase
+      .from("company_admins")
+      .select("company_id")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    if (adminError || !adminData) {
+      toast.error("Access denied. Not a company administrator.");
+      await supabase.auth.signOut();
+      navigate("/company-login");
+      return;
+    }
+
+    // Get company details
+    const { data: companyData, error: companyError } = await supabase
+      .from("companies")
+      .select("id, company_name")
+      .eq("id", adminData.company_id)
+      .maybeSingle();
+
+    if (companyError || !companyData) {
+      toast.error("Could not load company data");
+      setIsLoading(false);
+      return;
+    }
+
+    setCompany(companyData);
+    await loadShareholders(companyData.id);
+    setIsLoading(false);
+  };
+
+  const loadShareholders = async (companyId: string) => {
+    const { data, error } = await supabase
+      .from("shareholders")
+      .select("*")
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("Failed to load shareholders");
+      return;
+    }
+
+    setShareholders(data || []);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: "" }));
+  };
+
+  const generateSecureCredentials = () => {
+    // Generate numeric login ID (8 digits)
+    const loginId = Math.floor(10000000 + Math.random() * 90000000).toString();
+
+    // Generate secure alphanumeric password (12 characters)
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return { loginId, password };
+  };
+
+  const hashPassword = async (password: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  };
+
+  const handleAddShareholder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAddingShareholder(true);
+    setErrors({});
+
+    try {
+      const validatedData = shareholderSchema.parse({
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim() || undefined,
+        sharesHeld: parseInt(formData.sharesHeld) || 0,
+      });
+
+      if (!company) {
+        toast.error("Company not found");
+        setIsAddingShareholder(false);
+        return;
+      }
+
+      // Generate secure credentials
+      const { loginId, password } = generateSecureCredentials();
+      const passwordHash = await hashPassword(password);
+
+      // Insert shareholder
+      const { data: newShareholder, error } = await supabase
+        .from("shareholders")
+        .insert({
+          company_id: company.id,
+          shareholder_name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          shares_held: validatedData.sharesHeld,
+          login_id: loginId,
+          password_hash: passwordHash,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          toast.error("A shareholder with this login ID already exists");
+        } else {
+          toast.error("Failed to add shareholder");
+        }
+        setIsAddingShareholder(false);
+        return;
+      }
+
+      // Send credentials via Supabase Edge Function
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+          body: {
+            shareholderEmail: validatedData.email,
+            shareholderName: validatedData.name,
+            companyName: company.company_name,
+            loginId: loginId,
+            password: password,
+          },
+        });
+
+        if (emailError) throw emailError;
+
+        toast.success("Shareholder added and credentials sent via email!");
+      } catch (emailError: any) {
+        console.error("Email failed:", emailError);
+        const msg = emailError.message || "";
+
+        // Graceful fallback is less needed now, but good to keep the manual method option if email fails completely
+        toast.success("Shareholder added! IMPORTANT: Save these credentials:", {
+          description: `User ID: ${loginId} | Password: ${password}`,
+          duration: 30000,
+          action: {
+            label: "Copy",
+            onClick: () => navigator.clipboard.writeText(`ID: ${loginId}\nPassword: ${password}`)
+          }
+        });
+        toast.warning("Email sending service encountered an issue. Please manually share the credentials.");
+      }
+
+      // Reset form and reload
+      setFormData({ name: "", email: "", phone: "", sharesHeld: "" });
+      setShowAddForm(false);
+      await loadShareholders(company.id);
+
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        err.errors.forEach((error) => {
+          if (error.path[0]) {
+            fieldErrors[error.path[0] as string] = error.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
+    } finally {
+      setIsAddingShareholder(false);
+    }
+  };
+
+  const handleResendCredentials = async (shareholder: Shareholder) => {
+    setIsSendingCredentials(shareholder.id);
+
+    try {
+      // Generate new credentials
+      const { loginId, password } = generateSecureCredentials();
+      const passwordHash = await hashPassword(password);
+
+      // Update shareholder with new credentials
+      const { error: updateError } = await supabase
+        .from("shareholders")
+        .update({
+          login_id: loginId,
+          password_hash: passwordHash,
+          is_credential_used: false,
+          credential_created_at: new Date().toISOString(),
+        })
+        .eq("id", shareholder.id);
+
+      if (updateError) {
+        toast.error("Failed to regenerate credentials");
+        return;
+      }
+
+      // Send new credentials via Supabase Edge Function
+      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+        body: {
+          shareholderEmail: shareholder.email,
+          shareholderName: shareholder.shareholder_name,
+          companyName: company?.company_name,
+          loginId: loginId,
+          password: password,
+        },
+      });
+
+      if (emailError) throw emailError;
+
+      toast.success("New credentials sent successfully!");
+      if (company) await loadShareholders(company.id);
+
+    } catch (error: any) {
+      console.error("Resend failed:", error);
+      toast.error(`Email failed: ${error.message || "Unknown error"}`);
+    } finally {
+      setIsSendingCredentials(null);
+    }
+  };
+
+  const handleDeleteShareholder = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this shareholder?")) return;
+
+    const { error } = await supabase
+      .from("shareholders")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Failed to delete shareholder");
+      return;
+    }
+
+    toast.success("Shareholder deleted");
+    if (company) await loadShareholders(company.id);
+  };
+
+  // OTP States
+  const [otpSent, setOtpSent] = useState(false);
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+
+  const handleSendDeregisterOtp = async () => {
+    if (!company) return;
+
+    setIsSendingCredentials("deregister"); // Reuse loading state
+    try {
+      // Generate 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(otp);
+
+      // Get admin email (from current session/user context or query)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("User email not found");
+
+      // Use the updated Supabase Function that now handles OTPs
+      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
+        body: {
+          type: 'otp',
+          email: user.email,
+          companyName: company.company_name,
+          otp: otp
+        }
+      });
+
+      if (emailError) throw emailError;
+
+      toast.success("OTP sent to your registered email");
+      setOtpSent(true);
+    } catch (error: any) {
+      console.error("Failed to send OTP:", error);
+      toast.error(`Failed to send verification email: ${error.message}`);
+    } finally {
+      setIsSendingCredentials(null);
+    }
+  };
+
+  const handleVerifyAndDeregister = async () => {
+    if (enteredOtp !== generatedOtp) {
+      toast.error("Invalid OTP. Please try again.");
+      return;
+    }
+
+    if (!company) return;
+
+    setIsDeletingCompany(true);
+    try {
+      // 1. Delete Shareholders (Manual Cascade just in case)
+      await supabase.from("shareholders").delete().eq("company_id", company.id);
+
+      // 2. Delete Company Admin entry & User Role
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("company_admins").delete().eq("user_id", user.id);
+        await supabase.from("user_roles").delete().eq("user_id", user.id);
+      }
+
+      // 3. Delete Company
+      const { error } = await supabase
+        .from("companies")
+        .delete()
+        .eq("id", company.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Company deregistered successfully");
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (error: any) {
+      console.error("Deregister failed:", error);
+      toast.error(error.message || "Failed to deregister company");
+    } finally {
+      setIsDeletingCompany(false);
+      setShowDeregisterDialog(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/company-login");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+
+      <main className="pt-24 pb-16">
+        <div className="container mx-auto px-4">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
+                <Building2 className="w-4 h-4" />
+                <span>Company Dashboard</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                Welcome,{" "}
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  {company?.company_name}
+                </span>
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Manage your shareholders and send voting credentials
+              </p>
+            </div>
+            <div className="flex gap-3 self-start">
+              <Button variant="saffron" onClick={() => navigate("/voting-management")} className="gap-2">
+                <Shield className="w-4 h-4" />
+                Manage Voting
+              </Button>
+              <Button variant="ghost" onClick={handleLogout} className="gap-2">
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="border-border/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
+                    <p className="text-sm text-muted-foreground">Total Shareholders</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {shareholders.filter(s => s.is_credential_used).length}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Credentials Used</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    <Hash className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {shareholders.reduce((acc, s) => acc + s.shares_held, 0).toLocaleString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Total Shares</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Add Shareholder Section */}
+          <Card className="mb-8 border-border/50 shadow-large">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    Shareholder Management
+                  </CardTitle>
+                  <CardDescription>
+                    Add shareholders and send them secure login credentials via email
+                  </CardDescription>
+                </div>
+                <Button
+                  variant={showAddForm ? "ghost" : "saffron"}
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="gap-2"
+                >
+                  {showAddForm ? "Cancel" : <><Plus className="w-4 h-4" /> Add Shareholder</>}
+                </Button>
+              </div>
+            </CardHeader>
+
+            {showAddForm && (
+              <CardContent className="border-t border-border pt-6">
+                <form onSubmit={handleAddShareholder} className="space-y-4 animate-fade-in-up">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Shareholder Name *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Full Name"
+                        className={errors.name ? "border-destructive" : ""}
+                        required
+                        disabled={isAddingShareholder}
+                      />
+                      {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          placeholder="shareholder@email.com"
+                          className={`pl-11 ${errors.email ? "border-destructive" : ""}`}
+                          required
+                          disabled={isAddingShareholder}
+                        />
+                      </div>
+                      {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          placeholder="+91 9876543210"
+                          className="pl-11"
+                          disabled={isAddingShareholder}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="sharesHeld">Number of Shares *</Label>
+                      <Input
+                        id="sharesHeld"
+                        name="sharesHeld"
+                        type="number"
+                        value={formData.sharesHeld}
+                        onChange={handleInputChange}
+                        placeholder="1000"
+                        min="1"
+                        className={errors.sharesHeld ? "border-destructive" : ""}
+                        required
+                        disabled={isAddingShareholder}
+                      />
+                      {errors.sharesHeld && <p className="text-sm text-destructive">{errors.sharesHeld}</p>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
+                    <Shield className="w-5 h-5 text-accent mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Secure Credential Generation</p>
+                      <p className="text-xs text-muted-foreground">
+                        Auto-generated unique User ID and password will be sent to the shareholder's email.
+                        Credentials are hashed and stored securely.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button type="submit" variant="hero" className="gap-2" disabled={isAddingShareholder}>
+                    {isAddingShareholder ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    Add & Send Credentials
+                  </Button>
+                </form>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Shareholders List */}
+          <Card className="border-border/50">
+            <CardHeader>
+              <CardTitle className="text-xl">Registered Shareholders</CardTitle>
+              <CardDescription>
+                View and manage all shareholders with their credential status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {shareholders.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                  <p className="text-muted-foreground">No shareholders added yet</p>
+                  <p className="text-sm text-muted-foreground/80">Click "Add Shareholder" to get started</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Email</th>
+                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Shares</th>
+                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Login ID</th>
+                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                        <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shareholders.map((shareholder) => (
+                        <tr key={shareholder.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                          <td className="py-4 px-4 font-medium text-foreground">{shareholder.shareholder_name}</td>
+                          <td className="py-4 px-4 text-muted-foreground">{shareholder.email}</td>
+                          <td className="py-4 px-4 text-muted-foreground">{shareholder.shares_held.toLocaleString()}</td>
+                          <td className="py-4 px-4">
+                            <code className="px-2 py-1 rounded bg-muted text-sm">{shareholder.login_id}</code>
+                          </td>
+                          <td className="py-4 px-4">
+                            {shareholder.is_credential_used ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Active
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 text-xs font-medium">
+                                Pending
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleResendCredentials(shareholder)}
+                                disabled={isSendingCredentials === shareholder.id}
+                                className="gap-1"
+                              >
+                                {isSendingCredentials === shareholder.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="w-4 h-4" />
+                                )}
+                                Resend
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteShareholder(shareholder.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Danger Zone */}
+          <Card className="mt-8 border-destructive/20 shadow-none bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="text-xl text-destructive flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription className="text-destructive/80">
+                Irreversible actions for your company account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-destructive/20 rounded-lg bg-background">
+                <div>
+                  <h4 className="font-medium text-foreground">Deregister Company</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Permanently delete your company account and all associated data. This action cannot be undone.
+                  </p>
+                </div>
+
+                <AlertDialog open={showDeregisterDialog} onOpenChange={(open) => {
+                  setShowDeregisterDialog(open);
+                  if (!open) {
+                    setOtpSent(false);
+                    setEnteredOtp("");
+                    setGeneratedOtp("");
+                  }
+                }}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={isDeletingCompany}>
+                      {isDeletingCompany ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      Deregister
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    {!otpSent ? (
+                      <>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your company account,
+                            all shareholder data, and voting records from our servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <Button
+                            variant="destructive"
+                            onClick={handleSendDeregisterOtp}
+                            disabled={isSendingCredentials === "deregister"}
+                          >
+                            {isSendingCredentials === "deregister" ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <Send className="w-4 h-4 mr-2" />
+                            )}
+                            Send OTP to Verify
+                          </Button>
+                        </AlertDialogFooter>
+                      </>
+                    ) : (
+                      <>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Enter Verification Code</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            We have sent a 6-digit verification code to your registered email.
+                            Please enter it below to confirm deletion.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="py-4">
+                          <Label htmlFor="otp" className="mb-2 block">Verification Code</Label>
+                          <Input
+                            id="otp"
+                            placeholder="Enter 6-digit code"
+                            value={enteredOtp}
+                            onChange={(e) => setEnteredOtp(e.target.value)}
+                            className="text-center text-lg tracking-widest"
+                            maxLength={6}
+                          />
+                        </div>
+                        <AlertDialogFooter>
+                          <Button variant="ghost" onClick={() => setShowDeregisterDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={handleVerifyAndDeregister}
+                            disabled={isDeletingCompany || enteredOtp.length !== 6}
+                          >
+                            {isDeletingCompany ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 mr-2" />
+                            )}
+                            Verify & Deregister
+                          </Button>
+                        </AlertDialogFooter>
+                      </>
+                    )}
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default CompanyDashboard;

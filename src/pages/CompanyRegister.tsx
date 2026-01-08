@@ -13,19 +13,16 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  Shield as ShieldHeaderIcon,
   Shield,
   Users,
   Lock,
   Eye,
   EyeOff,
-  Loader2,
-  CheckCircle
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import CashfreeGateway from "@/components/payment/CashfreeGateway";
 
 const step1Schema = z.object({
   companyName: z.string().min(2, "Company name is required").max(200),
@@ -57,11 +54,6 @@ const CompanyRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Payment State
-
-  // Payment State
-  const [paymentStatus, setPaymentStatus] = useState<"pending" | "paying" | "completed">("pending");
-  const [transactionId, setTransactionId] = useState<string>("");
   const [formData, setFormData] = useState({
     companyName: "",
     cin: "",
@@ -77,12 +69,6 @@ const CompanyRegister = () => {
     confirmPassword: "",
   });
 
-
-  const handlePaymentSuccess = (txnId: string) => {
-    setTransactionId(txnId);
-    setPaymentStatus("completed");
-    toast.success("Payment Verified! Registration Unlocked.");
-  };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -177,7 +163,6 @@ const CompanyRegister = () => {
           registered_address: `${formData.registeredAddress.trim()}, ${formData.city.trim()}, ${formData.state.trim()} - ${formData.pincode.trim()}`,
           contact_email: formData.contactEmail.trim().toLowerCase(),
           contact_phone: formData.contactPhone.trim(),
-          // In a real app, we would save payment_id: transactionId here
         });
 
       if (companyError) {
@@ -246,24 +231,6 @@ const CompanyRegister = () => {
     { number: 2, title: "Admin Account", icon: Users },
   ];
 
-
-  // If payment is active (paying), show gateway
-  if (paymentStatus === "paying") {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <main className="flex-1 container mx-auto px-4 flex items-center justify-center py-20 relative">
-          <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] dark:bg-grid-slate-400/[0.05] [mask-image:linear-gradient(to_bottom,transparent,black)] pointer-events-none" />
-          <CashfreeGateway
-            amount={1}
-            onSuccess={handlePaymentSuccess}
-            onCancel={() => setPaymentStatus("pending")}
-          />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -319,329 +286,277 @@ const CompanyRegister = () => {
             </div>
           </div>
 
+          <Card className="max-w-2xl mx-auto shadow-large border-border/50">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-2xl">
+                {step === 1 && "Company Details"}
+                {step === 2 && "Admin Account Setup"}
+              </CardTitle>
+              <CardDescription>
+                {step === 1 && "Enter your company's official details"}
+                {step === 2 && "Create your company admin account"}
+              </CardDescription>
+            </CardHeader>
 
-          {/* Payment Gating - Step 0 */}
-          {paymentStatus === "pending" ? (
-            <Card className="max-w-2xl mx-auto shadow-large border-border/50 text-center animate-fade-in-up relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-50 group-hover:opacity-100 transition-opacity" />
-              <CardHeader className="pb-6 relative z-10">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 text-primary animate-bounce-slow">
-                  <Lock className="w-8 h-8" />
-                </div>
-                <CardTitle className="text-3xl font-bold">Registration Fee</CardTitle>
-                <CardDescription className="text-lg mt-2">
-                  Complete a one-time verification payment to access the registration secure portal.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 pb-8 relative z-10">
-                <div className="bg-secondary/10 p-6 rounded-2xl border border-secondary/20 max-w-sm mx-auto backdrop-blur-sm">
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Amount to Pay</p>
-                  <div className="text-4xl font-bold text-secondary">₹1.00</div>
-                  <div className="flex items-center justify-center gap-2 mt-4 text-xs text-foreground/70">
-                    <Shield className="w-4 h-4 text-emerald-500" />
-                    <span>Secure Verification & Processing Fee</span>
-                  </div>
-                </div>
+            <CardContent>
+              <form onSubmit={handleSubmit}>
+                {/* Step 1: Company Details */}
+                {step === 1 && (
+                  <div className="space-y-4 animate-fade-in-up">
+                    <div className="space-y-2">
+                      <Label htmlFor="companyName">Company Name *</Label>
+                      <Input
+                        id="companyName"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Tata Consultancy Services Ltd."
+                        className={errors.companyName ? "border-destructive" : ""}
+                        required
+                      />
+                      {errors.companyName && <p className="text-sm text-destructive">{errors.companyName}</p>}
+                    </div>
 
-                <div className="max-w-md mx-auto space-y-3">
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground bg-accent/5 p-3 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                    <span className="text-left">Prevent spam and unauthorized registrations</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground bg-accent/5 p-3 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                    <span className="text-left">Instant account activation upon success</span>
-                  </div>
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cin">Corporate Identification Number (CIN) *</Label>
+                      <Input
+                        id="cin"
+                        name="cin"
+                        value={formData.cin}
+                        onChange={handleInputChange}
+                        placeholder="e.g., L22210TN1995PLC028771"
+                        className={errors.cin ? "border-destructive" : ""}
+                        required
+                      />
+                      {errors.cin && <p className="text-sm text-destructive">{errors.cin}</p>}
+                    </div>
 
-                <Button
-                  size="lg"
-                  className="w-full max-w-sm text-lg h-12 gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
-                  onClick={() => setPaymentStatus("paying")}
-                >
-                  Proceed to Pay & Verify
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            /* Registration Form */
-            <Card className="max-w-2xl mx-auto shadow-large border-border/50">
-              <CardHeader className="text-center pb-2">
-                <div className="flex items-center justify-center gap-2 mb-2 text-emerald-500 bg-emerald-500/10 py-1 px-3 rounded-full w-fit mx-auto text-xs font-semibold animate-in fade-in zoom-in duration-500">
-                  <ShieldHeaderIcon className="w-3 h-3" />
-                  PAYMENT VERIFIED: {transactionId || "CF" + Math.random().toString(36).substr(2, 6).toUpperCase()}
-                </div>
-                <CardTitle className="text-2xl">
-                  {step === 1 && "Company Details"}
-                  {step === 2 && "Admin Account Setup"}
-                </CardTitle>
-                <CardDescription>
-                  {step === 1 && "Enter your company's official details"}
-                  {step === 2 && "Create your company admin account"}
-                </CardDescription>
-              </CardHeader>
+                    <div className="space-y-2">
+                      <Label htmlFor="registeredAddress">Registered Address *</Label>
+                      <Input
+                        id="registeredAddress"
+                        name="registeredAddress"
+                        value={formData.registeredAddress}
+                        onChange={handleInputChange}
+                        placeholder="Building, Street, Area"
+                        className={errors.registeredAddress ? "border-destructive" : ""}
+                        required
+                      />
+                      {errors.registeredAddress && <p className="text-sm text-destructive">{errors.registeredAddress}</p>}
+                    </div>
 
-              <CardContent>
-                <form onSubmit={handleSubmit}>
-                  {/* Step 1: Company Details */}
-                  {step === 1 && (
-                    <div className="space-y-4 animate-fade-in-up">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="companyName">Company Name *</Label>
+                        <Label htmlFor="city">City *</Label>
                         <Input
-                          id="companyName"
-                          name="companyName"
-                          value={formData.companyName}
+                          id="city"
+                          name="city"
+                          value={formData.city}
                           onChange={handleInputChange}
-                          placeholder="e.g., Tata Consultancy Services Ltd."
-                          className={errors.companyName ? "border-destructive" : ""}
+                          placeholder="Mumbai"
+                          className={errors.city ? "border-destructive" : ""}
                           required
                         />
-                        {errors.companyName && <p className="text-sm text-destructive">{errors.companyName}</p>}
+                        {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="cin">Corporate Identification Number (CIN) *</Label>
+                        <Label htmlFor="state">State *</Label>
                         <Input
-                          id="cin"
-                          name="cin"
-                          value={formData.cin}
+                          id="state"
+                          name="state"
+                          value={formData.state}
                           onChange={handleInputChange}
-                          placeholder="e.g., L22210TN1995PLC028771"
-                          className={errors.cin ? "border-destructive" : ""}
+                          placeholder="Maharashtra"
+                          className={errors.state ? "border-destructive" : ""}
                           required
                         />
-                        {errors.cin && <p className="text-sm text-destructive">{errors.cin}</p>}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="registeredAddress">Registered Address *</Label>
-                        <Input
-                          id="registeredAddress"
-                          name="registeredAddress"
-                          value={formData.registeredAddress}
-                          onChange={handleInputChange}
-                          placeholder="Building, Street, Area"
-                          className={errors.registeredAddress ? "border-destructive" : ""}
-                          required
-                        />
-                        {errors.registeredAddress && <p className="text-sm text-destructive">{errors.registeredAddress}</p>}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="city">City *</Label>
-                          <Input
-                            id="city"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleInputChange}
-                            placeholder="Mumbai"
-                            className={errors.city ? "border-destructive" : ""}
-                            required
-                          />
-                          {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="state">State *</Label>
-                          <Input
-                            id="state"
-                            name="state"
-                            value={formData.state}
-                            onChange={handleInputChange}
-                            placeholder="Maharashtra"
-                            className={errors.state ? "border-destructive" : ""}
-                            required
-                          />
-                          {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="pincode">PIN Code *</Label>
-                        <Input
-                          id="pincode"
-                          name="pincode"
-                          value={formData.pincode}
-                          onChange={handleInputChange}
-                          placeholder="400001"
-                          className={errors.pincode ? "border-destructive" : ""}
-                          required
-                        />
-                        {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
+                        {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
                       </div>
                     </div>
-                  )}
 
-                  {/* Step 2: Admin Account */}
-                  {step === 2 && (
-                    <div className="space-y-4 animate-fade-in-up">
-                      <div className="space-y-2">
-                        <Label htmlFor="contactName">Your Full Name *</Label>
-                        <div className="relative">
-                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="contactName"
-                            name="contactName"
-                            value={formData.contactName}
-                            onChange={handleInputChange}
-                            placeholder="Full Name"
-                            className={`pl-11 ${errors.contactName ? "border-destructive" : ""}`}
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                        {errors.contactName && <p className="text-sm text-destructive">{errors.contactName}</p>}
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pincode">PIN Code *</Label>
+                      <Input
+                        id="pincode"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        placeholder="400001"
+                        className={errors.pincode ? "border-destructive" : ""}
+                        required
+                      />
+                      {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
+                    </div>
+                  </div>
+                )}
 
-                      <div className="space-y-2">
-                        <Label htmlFor="designation">Designation *</Label>
+                {/* Step 2: Admin Account */}
+                {step === 2 && (
+                  <div className="space-y-4 animate-fade-in-up">
+                    <div className="space-y-2">
+                      <Label htmlFor="contactName">Your Full Name *</Label>
+                      <div className="relative">
+                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <Input
-                          id="designation"
-                          name="designation"
-                          value={formData.designation}
+                          id="contactName"
+                          name="contactName"
+                          value={formData.contactName}
                           onChange={handleInputChange}
-                          placeholder="e.g., Company Secretary"
-                          className={errors.designation ? "border-destructive" : ""}
+                          placeholder="Full Name"
+                          className={`pl-11 ${errors.contactName ? "border-destructive" : ""}`}
                           required
                           disabled={isLoading}
                         />
-                        {errors.designation && <p className="text-sm text-destructive">{errors.designation}</p>}
                       </div>
+                      {errors.contactName && <p className="text-sm text-destructive">{errors.contactName}</p>}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="contactEmail">Email Address *</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="contactEmail"
-                            name="contactEmail"
-                            type="email"
-                            value={formData.contactEmail}
-                            onChange={handleInputChange}
-                            placeholder="admin@company.com"
-                            className={`pl-11 ${errors.contactEmail ? "border-destructive" : ""}`}
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                        {errors.contactEmail && <p className="text-sm text-destructive">{errors.contactEmail}</p>}
+                    <div className="space-y-2">
+                      <Label htmlFor="designation">Designation *</Label>
+                      <Input
+                        id="designation"
+                        name="designation"
+                        value={formData.designation}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Company Secretary"
+                        className={errors.designation ? "border-destructive" : ""}
+                        required
+                        disabled={isLoading}
+                      />
+                      {errors.designation && <p className="text-sm text-destructive">{errors.designation}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="contactEmail">Email Address *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="contactEmail"
+                          name="contactEmail"
+                          type="email"
+                          value={formData.contactEmail}
+                          onChange={handleInputChange}
+                          placeholder="admin@company.com"
+                          className={`pl-11 ${errors.contactEmail ? "border-destructive" : ""}`}
+                          required
+                          disabled={isLoading}
+                        />
                       </div>
+                      {errors.contactEmail && <p className="text-sm text-destructive">{errors.contactEmail}</p>}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="contactPhone">Phone Number *</Label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="contactPhone"
-                            name="contactPhone"
-                            type="tel"
-                            value={formData.contactPhone}
-                            onChange={handleInputChange}
-                            placeholder="+91 9876543210"
-                            className={`pl-11 ${errors.contactPhone ? "border-destructive" : ""}`}
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                        {errors.contactPhone && <p className="text-sm text-destructive">{errors.contactPhone}</p>}
+                    <div className="space-y-2">
+                      <Label htmlFor="contactPhone">Phone Number *</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="contactPhone"
+                          name="contactPhone"
+                          type="tel"
+                          value={formData.contactPhone}
+                          onChange={handleInputChange}
+                          placeholder="+91 9876543210"
+                          className={`pl-11 ${errors.contactPhone ? "border-destructive" : ""}`}
+                          required
+                          disabled={isLoading}
+                        />
                       </div>
+                      {errors.contactPhone && <p className="text-sm text-destructive">{errors.contactPhone}</p>}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="password">Create Password *</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            placeholder="Minimum 8 characters"
-                            className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
-                            required
-                            disabled={isLoading}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                          >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                          </button>
-                        </div>
-                        {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Create Password *</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          placeholder="Minimum 8 characters"
+                          className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
+                          required
+                          disabled={isLoading}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
                       </div>
+                      {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type={showPassword ? "text" : "password"}
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            placeholder="Re-enter your password"
-                            className={`pl-11 ${errors.confirmPassword ? "border-destructive" : ""}`}
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                        {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Input
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          type={showPassword ? "text" : "password"}
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          placeholder="Re-enter your password"
+                          className={`pl-11 ${errors.confirmPassword ? "border-destructive" : ""}`}
+                          required
+                          disabled={isLoading}
+                        />
                       </div>
+                      {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                    </div>
 
-                      {/* Security Notice */}
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
-                        <Shield className="w-5 h-5 text-accent mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">Secure Registration</p>
-                          <p className="text-xs text-muted-foreground">
-                            Your password is encrypted and stored securely. You'll use this to access your company dashboard.
-                          </p>
-                        </div>
+                    {/* Security Notice */}
+                    <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
+                      <Shield className="w-5 h-5 text-accent mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Secure Registration</p>
+                        <p className="text-xs text-muted-foreground">
+                          Your password is encrypted and stored securely. You'll use this to access your company dashboard.
+                        </p>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between mt-8 pt-6 border-t border-border">
+                  {step > 1 ? (
+                    <Button type="button" variant="ghost" onClick={prevStep} className="gap-2" disabled={isLoading}>
+                      <ArrowLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                  ) : (
+                    <Link to="/">
+                      <Button type="button" variant="ghost" className="gap-2">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Home
+                      </Button>
+                    </Link>
                   )}
 
-                  {/* Navigation Buttons */}
-                  <div className="flex justify-between mt-8 pt-6 border-t border-border">
-                    {step > 1 ? (
-                      <Button type="button" variant="ghost" onClick={prevStep} className="gap-2" disabled={isLoading}>
-                        <ArrowLeft className="w-4 h-4" />
-                        Previous
-                      </Button>
-                    ) : (
-                      <Link to="/">
-                        <Button type="button" variant="ghost" className="gap-2">
-                          <ArrowLeft className="w-4 h-4" />
-                          Back to Home
-                        </Button>
-                      </Link>
-                    )}
-
-                    {step < 2 ? (
-                      <Button type="button" variant="saffron" onClick={nextStep} className="gap-2">
-                        Next Step
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    ) : (
-                      <Button type="submit" variant="hero" className="gap-2" disabled={isLoading}>
-                        {isLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4" />
-                        )}
-                        Complete Registration
-                      </Button>
-                    )}
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
+                  {step < 2 ? (
+                    <Button type="button" variant="saffron" onClick={nextStep} className="gap-2">
+                      Next Step
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" variant="hero" className="gap-2" disabled={isLoading}>
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      Complete Registration
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
 
 
           {/* Login Link */}

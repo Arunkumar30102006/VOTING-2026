@@ -150,6 +150,10 @@ const handler = async (req: Request): Promise<Response> => {
                       <a href="${meetingLink}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
                         🔗 Join Meeting
                       </a>
+                      <p style="margin-top: 15px; color: #64748b; font-size: 12px;">
+                        Or copy this link: <br>
+                        <a href="${meetingLink}" style="color: #3b82f6; word-break: break-all;">${meetingLink}</a>
+                      </p>
                     </td>
                   </tr>
                 </table>

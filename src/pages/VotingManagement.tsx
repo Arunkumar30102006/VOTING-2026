@@ -544,7 +544,7 @@ const VotingManagement = () => {
     setIsSendingEmails(true);
 
     try {
-      toast.info(`Sending invites to ${shareholders.length + nominees.length} recipients...`);
+      toast.info(`Sending invites to ${shareholders.length} shareholders and ${nominees.length} nominees...`);
 
       // Prepare payload
       const recipients = [
@@ -560,6 +560,14 @@ const VotingManagement = () => {
           type: "nominee" as const
         }))
       ];
+
+      console.log("Recipients Payload:", JSON.stringify(recipients, null, 2));
+
+      if (recipients.length === 0) {
+        toast.error("No recipients found (0 shareholders, 0 nominees).");
+        setIsSendingEmails(false);
+        return;
+      }
 
       // Invoke Supabase Function
       const { data, error } = await supabase.functions.invoke('send-meeting-invites', {

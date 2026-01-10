@@ -26,6 +26,10 @@ const ShareholderLogin = () => {
     userId: "",
     password: "",
   });
+  const [loginStep, setLoginStep] = useState<"CREDENTIALS" | "OTP">("CREDENTIALS");
+  const [otp, setOtp] = useState("");
+  const [maskedPhone, setMaskedPhone] = useState("");
+  const [shareholderId, setShareholderId] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,44 +51,132 @@ const ShareholderLogin = () => {
     setIsLoading(true);
 
     try {
-      const passwordHash = await hashPassword(formData.password);
-
-      const { data, error } = await supabase
-        .from("shareholders")
-        .select("*")
-        .eq("login_id", formData.userId)
-        .eq("password_hash", passwordHash)
-        .maybeSingle();
-
-      if (error) {
-        toast.error("An error occurred during login");
-        console.error("Login error:", error);
-      } else if (data) {
-        // Mark credential as used
-        await supabase
-          .from("shareholders")
-          .update({ is_credential_used: true })
-          .eq("id", data.id);
-
-        // Store shareholder session info (e.g. ID)
-        localStorage.setItem("shareholderId", data.id);
-
-        toast.success("Login successful!", {
-          description: "Redirecting to voting dashboard...",
-        });
-
-        // Short delay to show toast before redirect
-        setTimeout(() => {
-          navigate("/voting-dashboard");
-        }, 1000);
+      if (loginStep === "CREDENTIALS") {
+        await handleCredentialsSubmit();
       } else {
-        toast.error("Invalid User ID or Password");
+        await handleOtpSubmit();
       }
     } catch (err) {
       console.error("Login exception:", err);
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCredentialsSubmit = async () => {
+    const passwordHash = await hashPassword(formData.password);
+
+    const { data, error } = await supabase
+      .from("shareholders")
+      .select("*")
+      .eq("login_id", formData.userId)
+      .eq("password_hash", passwordHash)
+      .maybeSingle();
+
+    if (error) {
+      toast.error("An error occurred during login");
+      console.error("Login error:", error);
+      return;
+    }
+
+    if (data) {
+      if (data.is_credential_used) {
+        toast.error("This credential has already been used.", {
+          description: "If you believe this is an error, please contact support."
+        });
+        return;
+      }
+
+      const phone = data.phone;
+      if (!phone) {
+        toast.error("No mobile number registered for this shareholder.", {
+          description: "Please contact support to update your contact details."
+        });
+        return;
+      }
+
+      // Store ID for next step
+      setShareholderId(data.id);
+
+      // Mask Phone
+      const last4 = phone.slice(-4);
+      setMaskedPhone(`******${last4}`);
+
+      // Trigger OTP
+      try {
+        const { error: fnError } = await supabase.functions.invoke("send-sms-otp", {
+          body: { shareholder_id: data.id, phone: phone },
+        });
+
+        if (fnError) {
+          throw fnError;
+        }
+
+        toast.success("Credentials Verified", {
+          description: `OTP sent to register mobile number ending in ${last4}`,
+        });
+        setLoginStep("OTP");
+      } catch (err: any) {
+        console.error("Failed to send OTP:", err);
+        toast.error("Failed to send OTP", {
+          description: err.message || "Please check your internet connection or try again later.",
+        });
+      }
+    } else {
+      toast.error("Invalid User ID or Password");
+    }
+  };
+
+  const handleOtpSubmit = async () => {
+    // Verify OTP
+    // 1. Fetch user to get current OTP hash and expiry
+    const { data, error } = await supabase
+      .from("shareholders")
+      .select("otp_code, otp_expiry, id")
+      .eq("id", shareholderId)
+      .single();
+
+    if (error || !data) {
+      toast.error("Verification failed. Please try logging in again.");
+      setLoginStep("CREDENTIALS");
+      return;
+    }
+
+    // 2. Check Expiry
+    if (!data.otp_expiry || new Date(data.otp_expiry) < new Date()) {
+      toast.error("OTP has expired.", {
+        description: "Please go back and login again to receive a new OTP."
+      });
+      return;
+    }
+
+    // 3. Hash input OTP and compare
+    const inputHash = await hashPassword(otp); // Using same hashing function (SHA-256)
+
+    if (inputHash === data.otp_code) {
+      // Success!
+      // Mark credential as used AND clear OTP
+      await supabase
+        .from("shareholders")
+        .update({
+          is_credential_used: true,
+          otp_code: null,
+          otp_expiry: null
+        })
+        .eq("id", shareholderId);
+
+      localStorage.setItem("shareholderId", shareholderId);
+
+      toast.success("Login successful!", {
+        description: "Redirecting to voting dashboard...",
+      });
+
+      setTimeout(() => {
+        navigate("/voting-dashboard");
+      }, 1000);
+    } else {
+      toast.error("Invalid OTP. Please try again.");
     }
   };
 
@@ -153,80 +245,136 @@ const ShareholderLogin = () => {
 
                 <CardContent className="relative z-10">
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="userId">User ID</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="userId"
-                          name="userId"
-                          value={formData.userId}
-                          onChange={handleInputChange}
-                          placeholder="Enter your User ID"
-                          className="pl-11"
-                          required
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Your User ID was sent to your registered email
-                      </p>
-                    </div>
+                    {loginStep === "CREDENTIALS" && (
+                      <div className="space-y-5">
+                        <div className="space-y-2">
+                          <Label htmlFor="userId">User ID</Label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              id="userId"
+                              name="userId"
+                              value={formData.userId}
+                              onChange={handleInputChange}
+                              placeholder="Enter your User ID"
+                              className="pl-11"
+                              required
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Your User ID was sent to your registered email
+                          </p>
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
-                      <div className="relative">
-                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          placeholder="Enter your password"
-                          className="pl-11 pr-11"
-                          required
-                        />
+                        <div className="space-y-2">
+                          <Label htmlFor="password">Password</Label>
+                          <div className="relative">
+                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              id="password"
+                              name="password"
+                              type={showPassword ? "text" : "password"}
+                              value={formData.password}
+                              onChange={handleInputChange}
+                              placeholder="Enter your password"
+                              className="pl-11 pr-11"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Security Notice */}
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
+                          <Shield className="w-4 h-4 text-accent flex-shrink-0" />
+                          <p className="text-xs text-muted-foreground">
+                            This is a secure 256-bit encrypted connection
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {loginStep === "CREDENTIALS" ? (
+                      <Button
+                        type="submit"
+                        variant="hero"
+                        size="lg"
+                        className="w-full gap-2"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          <>
+                            Proceed to Verify
+                            <ArrowRight className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="otp">One-Time Password (OTP)</Label>
+                          <Input
+                            id="otp"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            placeholder="Enter 6-digit OTP"
+                            className="text-center text-2xl tracking-widest"
+                            maxLength={6}
+                            autoFocus
+                            required
+                          />
+                          <p className="text-xs text-center text-muted-foreground">
+                            Sent to {maskedPhone}
+                          </p>
+                        </div>
+
+                        <Button
+                          type="submit"
+                          variant="hero"
+                          size="lg"
+                          className="w-full gap-2"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                              Verifying OTP...
+                            </>
+                          ) : (
+                            <>
+                              Secure Login
+                              <Lock className="w-5 h-5" />
+                            </>
+                          )}
+                        </Button>
+
                         <button
                           type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => {
+                            setLoginStep("CREDENTIALS");
+                            setOtp("");
+                          }}
+                          className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          {showPassword ? (
-                            <EyeOff className="w-5 h-5" />
-                          ) : (
-                            <Eye className="w-5 h-5" />
-                          )}
+                          Back to Credentials
                         </button>
                       </div>
-                    </div>
-
-                    {/* Security Notice */}
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/10 border border-accent/20">
-                      <Shield className="w-4 h-4 text-accent flex-shrink-0" />
-                      <p className="text-xs text-muted-foreground">
-                        This is a secure 256-bit encrypted connection
-                      </p>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      variant="hero"
-                      size="lg"
-                      className="w-full gap-2"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                          Authenticating...
-                        </>
-                      ) : (
-                        <>
-                          Access Voting Portal
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      )}
-                    </Button>
+                    )}
                   </form>
 
                   {/* Help Link */}

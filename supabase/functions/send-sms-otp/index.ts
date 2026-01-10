@@ -92,20 +92,15 @@ serve(async (req) => {
         console.log("Twilio Response:", twilioData);
 
         return new Response(
-            JSON.stringify({ success: true, message: "OTP sent successfully" }),
-            {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 200,
-            }
+            JSON.stringify({ success: true, message: "OTP sent" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     } catch (error: any) {
-        console.error("Error in send-sms-otp:", error);
+        console.error(error);
+        // Return 200 even on error so client can read the message
         return new Response(
-            JSON.stringify({ error: error.message }),
-            {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-                status: 400,
-            }
+            JSON.stringify({ success: false, message: error.message }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }
 });

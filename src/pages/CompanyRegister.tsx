@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/layout/Navbar";
+
 import Footer from "@/components/layout/Footer";
 import {
   Building2,
@@ -45,14 +46,19 @@ const step2Schema = z.object({
   path: ["confirmPassword"],
 });
 
-type Step = 1 | 2;
+type Step = 1 | 2 | 3;
 
 const CompanyRegister = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Ensure clean state on mount
+  useEffect(() => {
+    supabase.auth.signOut();
+  }, []);
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -67,6 +73,7 @@ const CompanyRegister = () => {
     designation: "",
     password: "",
     confirmPassword: "",
+    otp: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -100,14 +107,67 @@ const CompanyRegister = () => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (step === 1 && validateStep1()) {
       setStep(2);
+    } else if (step === 2) {
+      // Validate step 2 before sending OTP
+      try {
+        step2Schema.parse({
+          contactName: formData.contactName.trim(),
+          contactEmail: formData.contactEmail.trim().toLowerCase(),
+          contactPhone: formData.contactPhone.trim(),
+          designation: formData.designation.trim(),
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+        });
+
+        // Send OTP
+        setIsLoading(true);
+        const res = await fetch(
+          "https://tpfvvuuumfuvbqkackwk.supabase.co/functions/v1/send-email-otp",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({
+              email: formData.contactEmail,
+              name: formData.contactName
+            })
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          toast.error(data.message || "Failed to send verification code.");
+          setIsLoading(false);
+          return;
+        }
+
+        toast.success("Verification code sent to your email.");
+        setStep(3);
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          const fieldErrors: Record<string, string> = {};
+          err.errors.forEach((error) => {
+            if (error.path[0]) {
+              fieldErrors[error.path[0] as string] = error.message;
+            }
+          });
+          setErrors(fieldErrors);
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const prevStep = () => {
-    if (step > 1) setStep((step - 1) as Step);
+    if (step > 1) setStep((step - 1) as any);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,15 +176,32 @@ const CompanyRegister = () => {
     setErrors({});
 
     try {
-      // Validate step 2 data
-      step2Schema.parse({
-        contactName: formData.contactName.trim(),
-        contactEmail: formData.contactEmail.trim().toLowerCase(),
-        contactPhone: formData.contactPhone.trim(),
-        designation: formData.designation.trim(),
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-      });
+      // Step 3 already implies previous validation, but let's verify OTP
+      if (step === 3) {
+        const res = await fetch(
+          "https://tpfvvuuumfuvbqkackwk.supabase.co/functions/v1/verify-email-otp",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({
+              email: formData.contactEmail,
+              code: formData.otp
+            })
+          }
+        );
+
+        const verifyData = await res.json();
+
+        if (!res.ok || !verifyData.success) {
+          toast.error(verifyData.message || "Invalid Verification Code");
+          setIsLoading(false);
+          return;
+        }
+      }
 
       // 1. Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -206,6 +283,21 @@ const CompanyRegister = () => {
         console.error("Role creation error:", roleError);
       }
 
+      // 5. Send Welcome Email
+      // Note: We don't block navigation on this, just log if it fails
+      supabase.functions.invoke("send-welcome-email", {
+        body: {
+          email: formData.contactEmail,
+          companyName: formData.companyName,
+          cin: formData.cin,
+          adminName: formData.contactName,
+          address: `${formData.registeredAddress}, ${formData.city}, ${formData.state} - ${formData.pincode}`,
+          phone: formData.contactPhone
+        }
+      }).then(({ error }) => {
+        if (error) console.error("Failed to send welcome email:", error);
+      });
+
       toast.success("Company registered successfully!");
       navigate("/company-dashboard");
 
@@ -229,6 +321,7 @@ const CompanyRegister = () => {
   const stepInfo = [
     { number: 1, title: "Company Details", icon: Building2 },
     { number: 2, title: "Admin Account", icon: Users },
+    { number: 3, title: "Verification", icon: Shield },
   ];
 
   return (
@@ -291,15 +384,17 @@ const CompanyRegister = () => {
               <CardTitle className="text-2xl">
                 {step === 1 && "Company Details"}
                 {step === 2 && "Admin Account Setup"}
+                {step === 3 && "Email Verification"}
               </CardTitle>
               <CardDescription>
                 {step === 1 && "Enter your company's official details"}
                 {step === 2 && "Create your company admin account"}
+                {step === 3 && "Enter the OTP sent to your email"}
               </CardDescription>
             </CardHeader>
 
             <CardContent>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} autoComplete="off">
                 {/* Step 1: Company Details */}
                 {step === 1 && (
                   <div className="space-y-4 animate-fade-in-up">
@@ -459,6 +554,7 @@ const CompanyRegister = () => {
                           className={`pl-11 ${errors.contactPhone ? "border-destructive" : ""}`}
                           required
                           disabled={isLoading}
+                          autoComplete="off"
                         />
                       </div>
                       {errors.contactPhone && <p className="text-sm text-destructive">{errors.contactPhone}</p>}
@@ -478,6 +574,7 @@ const CompanyRegister = () => {
                           className={`pl-11 pr-11 ${errors.password ? "border-destructive" : ""}`}
                           required
                           disabled={isLoading}
+                          autoComplete="new-password"
                         />
                         <button
                           type="button"
@@ -504,6 +601,7 @@ const CompanyRegister = () => {
                           className={`pl-11 ${errors.confirmPassword ? "border-destructive" : ""}`}
                           required
                           disabled={isLoading}
+                          autoComplete="new-password"
                         />
                       </div>
                       {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
@@ -517,6 +615,66 @@ const CompanyRegister = () => {
                         <p className="text-xs text-muted-foreground">
                           Your password is encrypted and stored securely. You'll use this to access your company dashboard.
                         </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Verification */}
+                {step === 3 && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 text-center space-y-4">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Mail className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">Check your Email</h3>
+                        <p className="text-muted-foreground mt-1">
+                          We've sent a 6-digit verification code to
+                          <br />
+                          <span className="font-medium text-foreground">{formData.contactEmail}</span>
+                        </p>
+                      </div>
+
+                      <div className="max-w-xs mx-auto space-y-2 text-left">
+                        <Label htmlFor="otp" className="text-center block">Verification Code</Label>
+                        <Input
+                          id="otp"
+                          name="otp"
+                          type="text"
+                          maxLength={6}
+                          value={formData.otp}
+                          onChange={handleInputChange}
+                          placeholder="000000"
+                          className="text-center text-2xl tracking-[0.5em] font-mono h-14"
+                          autoComplete="one-time-code"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground text-center">
+                          Code expires in 10 minutes
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Security Badge - Requested by User */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/20">
+                        <Shield className="w-5 h-5 text-accent shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Bank-Grade Security</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Your vote and company data are protected with 256-bit encryption and immutable audit logs.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-saffron/10 border border-saffron/20">
+                        <Lock className="w-5 h-5 text-saffron shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Verified & Compliance</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Fully compliant with MCA (Ministry of Corporate Affairs) e-voting regulations.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -538,9 +696,10 @@ const CompanyRegister = () => {
                     </Link>
                   )}
 
-                  {step < 2 ? (
-                    <Button type="button" variant="saffron" onClick={nextStep} className="gap-2">
-                      Next Step
+                  {step < 3 ? (
+                    <Button type="button" variant="saffron" onClick={nextStep} className="gap-2" disabled={isLoading}>
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      {step === 2 ? "Verify Email" : "Next Step"}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   ) : (

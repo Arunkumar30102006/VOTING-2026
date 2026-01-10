@@ -59,6 +59,10 @@ interface Shareholder {
 interface Company {
   id: string;
   company_name: string;
+  cin_number: string;
+  registered_address: string;
+  contact_email: string;
+  contact_phone: string;
 }
 
 const CompanyDashboard = () => {
@@ -107,7 +111,7 @@ const CompanyDashboard = () => {
     // Get company details
     const { data: companyData, error: companyError } = await supabase
       .from("companies")
-      .select("id, company_name")
+      .select("id, company_name, cin_number, registered_address, contact_email, contact_phone")
       .eq("id", adminData.company_id)
       .maybeSingle();
 
@@ -402,6 +406,15 @@ const CompanyDashboard = () => {
         throw error;
       }
 
+      // 4. Delete Auth User (New Step: Allow reuse of email)
+      const { error: deleteAccError } = await supabase.functions.invoke("delete-account");
+      if (deleteAccError) {
+        console.error("Auth deletion failed:", deleteAccError);
+        toast.warning("Company data deleted, but account reset had minor issues. Please contact support if re-registration fails.");
+      } else {
+        toast.success("Account fully reset. You can now re-register.");
+      }
+
       toast.success("Company deregistered successfully");
       await supabase.auth.signOut();
       navigate("/");
@@ -464,6 +477,40 @@ const CompanyDashboard = () => {
               </Button>
             </div>
           </div>
+
+          {/* Company Profile Card - Added Request */}
+          <Card className="mb-8 border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Building2 className="w-5 h-5 text-primary" />
+                Company Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Company Name</p>
+                  <p className="font-semibold text-foreground">{company?.company_name}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">CIN Number</p>
+                  <p className="font-mono text-foreground bg-background/50 px-2 py-1 rounded w-fit border border-border">{company?.cin_number || "N/A"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Registered Email</p>
+                  <p className="text-foreground">{company?.contact_email}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Contact Phone</p>
+                  <p className="text-foreground">{company?.contact_phone || "N/A"}</p>
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <p className="text-sm font-medium text-muted-foreground">Registered Address</p>
+                  <p className="text-foreground">{company?.registered_address}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

@@ -1,5 +1,5 @@
 -- Create nominees table for director/candidate nominations
-CREATE TABLE public.nominees (
+CREATE TABLE IF NOT EXISTS public.nominees (
     id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     voting_session_id UUID NOT NULL REFERENCES public.voting_sessions(id) ON DELETE CASCADE,
     company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,

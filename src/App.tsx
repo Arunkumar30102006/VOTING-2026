@@ -22,37 +22,39 @@ import WebsiteFeedback from "./components/feedback/WebsiteFeedback";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <WebsiteFeedback />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/company-register" element={<CompanyRegister />} />
-            <Route path="/company-login" element={<CompanyLogin />} />
-            <Route path="/company-dashboard" element={<CompanyDashboard />} />
-            <Route path="/shareholder-login" element={<ShareholderLogin />} />
-            <Route path="/voting-dashboard" element={<VotingDashboard />} />
-            <Route path="/voting-management" element={<VotingManagement />} />
+const App = () => {
+  console.log("Vote India Secure - Live v1.2 (Feedback Enabled)");
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <WebsiteFeedback />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/company-register" element={<CompanyRegister />} />
+              <Route path="/company-login" element={<CompanyLogin />} />
+              <Route path="/company-dashboard" element={<CompanyDashboard />} />
+              <Route path="/shareholder-login" element={<ShareholderLogin />} />
+              <Route path="/voting-dashboard" element={<VotingDashboard />} />
+              <Route path="/voting-management" element={<VotingManagement />} />
 
-            {/* Legal Routes */}
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/sebi-compliance" element={<SebiCompliance />} />
-            <Route path="/data-protection" element={<DataProtection />} />
+              {/* Legal Routes */}
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/sebi-compliance" element={<SebiCompliance />} />
+              <Route path="/data-protection" element={<DataProtection />} />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
 
-export default App;
+  export default App;

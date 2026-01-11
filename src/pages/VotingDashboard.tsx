@@ -17,8 +17,14 @@ import {
   ThumbsDown,
   Minus,
   AlertCircle,
-  LogOut
+  LogOut,
+  Star,
+  MessageSquare,
+  Send,
+  Loader2
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface VotingItem {
@@ -43,6 +49,13 @@ const VotingDashboard = () => {
   });
   const [votingItems, setVotingItems] = useState<VotingItem[]>([]);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+  // Feedback State
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -258,10 +271,10 @@ const VotingDashboard = () => {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
             <div>
               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium mb-4 ${isSessionExpired
-                  ? "bg-destructive/10 border-destructive/20 text-destructive"
-                  : totalVoted === votingItems.length && votingItems.length > 0
-                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
-                    : "bg-accent/10 border-accent/20 text-accent"
+                ? "bg-destructive/10 border-destructive/20 text-destructive"
+                : totalVoted === votingItems.length && votingItems.length > 0
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                  : "bg-accent/10 border-accent/20 text-accent"
                 }`}>
                 {isSessionExpired ? (
                   <Clock className="w-4 h-4" />

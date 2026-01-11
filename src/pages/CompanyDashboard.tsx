@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { sendEmail } from "@/lib/email";
+import { DashboardFeedback } from "@/components/company/DashboardFeedback";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -476,6 +477,14 @@ const CompanyDashboard = () => {
                 Logout
               </Button>
             </div>
+          </div>
+
+          {/* Feedback Section */}
+          <div className="mb-8">
+            <DashboardFeedback
+              email={company?.contact_email || ""}
+              companyName={company?.company_name || ""}
+            />
           </div>
 
           {/* Company Profile Card - Added Request */}

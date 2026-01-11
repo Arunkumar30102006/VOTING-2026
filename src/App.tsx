@@ -18,6 +18,7 @@ import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
 import TermsOfService from "./pages/legal/TermsOfService";
 import SebiCompliance from "./pages/legal/SebiCompliance";
 import DataProtection from "./pages/legal/DataProtection";
+import WebsiteFeedback from "./components/feedback/WebsiteFeedback";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <WebsiteFeedback />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/company-register" element={<CompanyRegister />} />

@@ -25,12 +25,20 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
+import {
+  countries,
+  indianStates,
+  districtsMap,
+} from "@/lib/locationData";
+
 const step1Schema = z.object({
   companyName: z.string().min(2, "Company name is required").max(200),
   cin: z.string().min(10, "Valid CIN is required").max(25),
-  registeredAddress: z.string().min(5, "Address is required").max(500),
-  city: z.string().min(2, "City is required").max(100),
-  state: z.string().min(2, "State is required").max(100),
+  registeredAddress: z.string().min(5, "Building/Street is required").max(500),
+  country: z.string().min(1, "Country is required"),
+  state: z.string().min(1, "State is required"),
+  district: z.string().min(1, "District is required"), // Replaces City for validation
+  area: z.string().min(2, "Area is required"),
   pincode: z.string().regex(/^\d{6}$/, "Valid 6-digit PIN code required"),
 });
 
@@ -64,8 +72,10 @@ const CompanyRegister = () => {
     companyName: "",
     cin: "",
     registeredAddress: "",
-    city: "",
+    country: "India",
     state: "",
+    district: "",
+    area: "",
     pincode: "",
     contactName: "",
     contactEmail: "",
@@ -88,8 +98,10 @@ const CompanyRegister = () => {
         companyName: formData.companyName.trim(),
         cin: formData.cin.trim(),
         registeredAddress: formData.registeredAddress.trim(),
-        city: formData.city.trim(),
+        country: formData.country.trim(),
         state: formData.state.trim(),
+        district: formData.district.trim(),
+        area: formData.area.trim(),
         pincode: formData.pincode.trim(),
       });
       return true;
@@ -237,7 +249,7 @@ const CompanyRegister = () => {
           id: companyId,
           company_name: formData.companyName.trim(),
           cin_number: formData.cin.trim().toUpperCase(),
-          registered_address: `${formData.registeredAddress.trim()}, ${formData.city.trim()}, ${formData.state.trim()} - ${formData.pincode.trim()}`,
+          registered_address: `${formData.registeredAddress.trim()}, ${formData.area.trim()}, ${formData.district.trim()}, ${formData.state.trim()}, ${formData.country.trim()} - ${formData.pincode.trim()}`,
           contact_email: formData.contactEmail.trim().toLowerCase(),
           contact_phone: formData.contactPhone.trim(),
         });
@@ -291,7 +303,7 @@ const CompanyRegister = () => {
           companyName: formData.companyName,
           cin: formData.cin,
           adminName: formData.contactName,
-          address: `${formData.registeredAddress}, ${formData.city}, ${formData.state} - ${formData.pincode}`,
+          address: `${formData.registeredAddress}, ${formData.area}, ${formData.district}, ${formData.state}, ${formData.country} - ${formData.pincode}`,
           phone: formData.contactPhone
         }
       }).then(({ error }) => {
@@ -440,47 +452,161 @@ const CompanyRegister = () => {
                       {errors.registeredAddress && <p className="text-sm text-destructive">{errors.registeredAddress}</p>}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City *</Label>
-                        <Input
-                          id="city"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                          placeholder="Mumbai"
-                          className={errors.city ? "border-destructive" : ""}
-                          required
-                        />
-                        {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="country">Country *</Label>
+                      <select
+                        id="country"
+                        name="country"
+                        value={formData.country}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, country: e.target.value, state: "", district: "" }));
+                        }}
+                        className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.country ? "border-destructive" : ""}`}
+                      >
+                        <option value="" disabled>Select Country</option>
+                        {countries.map(c => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </select>
+                      {errors.country && <p className="text-sm text-destructive">{errors.country}</p>}
+                    </div>
+
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* State Selection */}
                       <div className="space-y-2">
                         <Label htmlFor="state">State *</Label>
-                        <Input
-                          id="state"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleInputChange}
-                          placeholder="Maharashtra"
-                          className={errors.state ? "border-destructive" : ""}
-                          required
-                        />
+                        {formData.country === "India" ? (
+                          <>
+                            <select
+                              id="state"
+                              name="state"
+                              value={indianStates.includes(formData.state) ? formData.state : "Other"}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "Other") {
+                                  setFormData(prev => ({ ...prev, state: "Other", district: "" }));
+                                } else {
+                                  setFormData(prev => ({ ...prev, state: val, district: "" }));
+                                }
+                              }}
+                              className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.state ? "border-destructive" : ""}`}
+                            >
+                              <option value="" disabled>Select State</option>
+                              {indianStates.map(s => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                              <option value="Other">Other (Type Manually)</option>
+                            </select>
+
+                            {(!indianStates.includes(formData.state) && formData.state !== "") || formData.state === "Other" ? (
+                              <Input
+                                name="state"
+                                value={formData.state === "Other" ? "" : formData.state}
+                                onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                                placeholder="Type State Name"
+                                className="mt-2"
+                                autoFocus
+                              />
+                            ) : null}
+                          </>
+                        ) : (
+                          <Input
+                            id="state"
+                            name="state"
+                            value={formData.state}
+                            onChange={handleInputChange}
+                            placeholder="Enter State"
+                            className={errors.state ? "border-destructive" : ""}
+                          />
+                        )}
                         {errors.state && <p className="text-sm text-destructive">{errors.state}</p>}
+                      </div>
+
+                      {/* District Selection */}
+                      <div className="space-y-2">
+                        <Label htmlFor="district">District *</Label>
+                        {formData.country === "India" && (indianStates.includes(formData.state) || formData.state === "Other") ? (
+                          <>
+                            {districtsMap[formData.state] ? (
+                              <select
+                                id="district"
+                                name="district"
+                                value={districtsMap[formData.state].includes(formData.district) ? formData.district : "Other"}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === "Other") {
+                                    setFormData(prev => ({ ...prev, district: "Other" }));
+                                  } else {
+                                    setFormData(prev => ({ ...prev, district: val }));
+                                  }
+                                }}
+                                className={`flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.district ? "border-destructive" : ""}`}
+                              >
+                                <option value="" disabled>Select District</option>
+                                {districtsMap[formData.state].map(d => (
+                                  <option key={d} value={d}>{d}</option>
+                                ))}
+                                <option value="Other">Other (Type Manually)</option>
+                              </select>
+                            ) : (
+                              <div className="h-10 flex items-center text-sm text-muted-foreground border rounded-md px-3 bg-muted/50">
+                                type manually below...
+                              </div>
+                            )}
+
+                            {(!districtsMap[formData.state]?.includes(formData.district) || formData.district === "Other") && (
+                              <Input
+                                name="district"
+                                value={formData.district === "Other" ? "" : formData.district}
+                                onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
+                                placeholder="Type District Name"
+                                className="mt-2"
+                                autoFocus={formData.district === "Other"}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <Input
+                            id="district"
+                            name="district"
+                            value={formData.district}
+                            onChange={handleInputChange}
+                            placeholder="Enter District"
+                            className={errors.district ? "border-destructive" : ""}
+                          />
+                        )}
+                        {errors.district && <p className="text-sm text-destructive">{errors.district}</p>}
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="pincode">PIN Code *</Label>
-                      <Input
-                        id="pincode"
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        placeholder="400001"
-                        className={errors.pincode ? "border-destructive" : ""}
-                        required
-                      />
-                      {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="area">Area *</Label>
+                        <Input
+                          id="area"
+                          name="area"
+                          value={formData.area}
+                          onChange={handleInputChange}
+                          placeholder="e.g., Andheri West"
+                          className={errors.area ? "border-destructive" : ""}
+                          required
+                        />
+                        {errors.area && <p className="text-sm text-destructive">{errors.area}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="pincode">PIN Code *</Label>
+                        <Input
+                          id="pincode"
+                          name="pincode"
+                          value={formData.pincode}
+                          onChange={handleInputChange}
+                          placeholder="400001"
+                          className={errors.pincode ? "border-destructive" : ""}
+                          required
+                        />
+                        {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
+                      </div>
                     </div>
                   </div>
                 )}

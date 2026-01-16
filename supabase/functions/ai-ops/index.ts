@@ -57,24 +57,53 @@ Deno.serve(async (req) => {
                 throw new Error(`Invalid action: ${action}`)
         }
 
-        // Call Gemini API
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
-            }),
-        })
+        // Call Gemini API with Retry Logic
+        const makeGeminiRequest = async (retryCount = 0): Promise<Response> => {
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    }),
+                });
 
-        if (!response.ok) {
-            const errorData = await response.text()
-            console.error('Gemini API Error:', errorData)
-            throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`)
-        }
+                if (response.status === 429) {
+                    if (retryCount < 3) {
+                        const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+                        console.warn(`Gemini 429 hit. Retrying in ${Math.round(delay)}ms...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return makeGeminiRequest(retryCount + 1);
+                    } else {
+                        throw new Error('Using too many requests. Please try again later.');
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Gemini API Error:', errorData);
+                    throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
+                }
+
+                return response;
+            } catch (error) {
+                if (retryCount < 3 && (error instanceof TypeError || (error as any).message.includes('network'))) {
+                    // Retry on network errors too or keeping it simpler for just 429?
+                    // Let's stick to recursion for clarity
+                    const delay = 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return makeGeminiRequest(retryCount + 1);
+                }
+                throw error;
+            }
+        };
+
+        const response = await makeGeminiRequest();
+
 
         const data = await response.json()
         console.log('Gemini response received')

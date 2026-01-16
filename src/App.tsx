@@ -12,6 +12,7 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 import ShareholderLogin from "./pages/ShareholderLogin";
 import VotingDashboard from "./pages/VotingDashboard";
 import VotingManagement from "./pages/VotingManagement";
+import AIPowerSuite from "./pages/AIPowerSuite";
 import NotFound from "./pages/NotFound";
 
 import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
@@ -19,6 +20,7 @@ import TermsOfService from "./pages/legal/TermsOfService";
 import SebiCompliance from "./pages/legal/SebiCompliance";
 import DataProtection from "./pages/legal/DataProtection";
 import WebsiteFeedback from "./components/feedback/WebsiteFeedback";
+import { VoteAssistant } from "./components/ai/VoteAssistant";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,7 @@ const App = () => {
           <BrowserRouter>
             <ScrollToTop />
             <WebsiteFeedback />
+            <VoteAssistant />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/company-register" element={<CompanyRegister />} />
@@ -41,6 +44,7 @@ const App = () => {
               <Route path="/shareholder-login" element={<ShareholderLogin />} />
               <Route path="/voting-dashboard" element={<VotingDashboard />} />
               <Route path="/voting-management" element={<VotingManagement />} />
+              <Route path="/ai-power-suite" element={<AIPowerSuite />} />
 
               {/* Legal Routes */}
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />

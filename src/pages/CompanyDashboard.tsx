@@ -38,6 +38,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { sendEmail } from "@/lib/email";
 import { DashboardFeedback } from "@/components/company/DashboardFeedback";
+import { DocumentSummarizer } from "@/components/ai/DocumentSummarizer";
+import { SentimentWidget } from "@/components/ai/SentimentWidget";
+import { AIAnalysisDemo } from "@/components/company/AIAnalysisDemo";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea"; // Ensure we have this or import it
+import { Sparkles, FileText, BrainCircuit } from "lucide-react";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -479,13 +485,43 @@ const CompanyDashboard = () => {
             </div>
           </div>
 
-          {/* Feedback Section */}
+          {/* AI Tools Section - NEW */}
           <div className="mb-8">
-            <DashboardFeedback
-              email={company?.contact_email || ""}
-              companyName={company?.company_name || ""}
-            />
+            {/* AI Power Suite Link */}
+            <div className="mb-8">
+              <Card className="border-purple-500/20 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-900 overflow-hidden relative group cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/ai-power-suite")}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Sparkles className="w-32 h-32 text-purple-600" />
+                </div>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    <Sparkles className="w-6 h-6 text-purple-600" />
+                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      AI Power Suite
+                    </span>
+                  </CardTitle>
+                  <CardDescription>
+                    Advanced AI tools to streamline your corporate governance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 text-purple-700 dark:text-purple-300">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30">
+                      <FileText className="w-4 h-4" /> Document Summarizer
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30">
+                      <BrainCircuit className="w-4 h-4" /> Sentiment Analysis
+                    </div>
+                  </div>
+                  <Button className="mt-6 bg-purple-600 hover:bg-purple-700 text-white gap-2">
+                    Open AI Suite <Sparkles className="w-4 h-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
+
+
 
           {/* Company Profile Card - Added Request */}
           <Card className="mb-8 border-primary/20 bg-primary/5">
@@ -773,6 +809,14 @@ const CompanyDashboard = () => {
             </CardContent>
           </Card>
 
+          {/* Feedback Section */}
+          <div className="mb-8">
+            <DashboardFeedback
+              email={company?.contact_email || ""}
+              companyName={company?.company_name || ""}
+            />
+          </div>
+
           {/* Danger Zone */}
           <Card className="mt-8 border-destructive/20 shadow-none bg-destructive/5">
             <CardHeader>
@@ -881,11 +925,11 @@ const CompanyDashboard = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </main>
+        </div >
+      </main >
 
       <Footer />
-    </div>
+    </div >
   );
 };
 

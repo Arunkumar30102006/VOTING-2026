@@ -1,8 +1,7 @@
-
 // Native Deno.serve (no imports needed)
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent'
+const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY')
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -15,41 +14,42 @@ Deno.serve(async (req) => {
     }
 
     try {
-        if (!GEMINI_API_KEY) {
-            console.error('GEMINI_API_KEY is missing')
-            throw new Error('Server configuration error: GEMINI_API_KEY is missing')
+        if (!GROQ_API_KEY) {
+            console.error('GROQ_API_KEY is missing')
+            throw new Error('Server configuration error: GROQ_API_KEY is missing')
         }
 
         const { action, payload } = await req.json()
         console.log(`Received action: ${action}`)
 
-        let prompt = ''
+        let systemPrompt = ''
+        let userPrompt = ''
 
         switch (action) {
             case 'summarize':
-                prompt = `Please provide a concise summary of the following document in bullet points. Focus on key financial figures, strategic decisions, and risks if any:\n\n${payload.text}`
+                systemPrompt = 'You are a helpful AI that summarizes documents. Provide a concise summary in bullet points, focusing on key financial figures, strategic decisions, and risks.'
+                userPrompt = payload.text
                 break
 
             case 'chat':
-                prompt = `${payload.context ? `Context: ${payload.context}\n\n` : ''}User Question: ${payload.message}`
+                systemPrompt = payload.context || 'You are a helpful assistant.'
+                userPrompt = payload.message
                 break
 
             case 'sentiment':
-                prompt = `Analyze the sentiment of the following shareholder feedback. Return a JSON object with: 
-        1. "sentiment": "Positive", "Neutral", or "Negative"
-        2. "score": a number between -1 (negative) and 1 (positive)
-        3. "themes": an array of key themes mentioned (max 3)
-        4. "summary": a one-sentence summary of the feedback.
-        
-        Feedback: "${payload.text}"
-        
-        Return ONLY the JSON object, no markdown formatting.`
+                systemPrompt = `Analyze the sentiment of the provided shareholder feedback. 
+                Return a JSON object with: 
+                1. "sentiment": "Positive", "Neutral", or "Negative"
+                2. "score": a number between -1 (negative) and 1 (positive)
+                3. "themes": an array of strings (max 3 themes)
+                4. "summary": a one-sentence summary.
+                
+                IMPORTANT: Return ONLY the raw JSON object. Do not wrap in markdown blocks.`
+                userPrompt = payload.text
                 break
 
             case 'debug':
-                const modelsResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-                const modelsData = await modelsResponse.json();
-                return new Response(JSON.stringify(modelsData), {
+                return new Response(JSON.stringify({ status: 'Groq Ready' }), {
                     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 });
 
@@ -57,67 +57,67 @@ Deno.serve(async (req) => {
                 throw new Error(`Invalid action: ${action}`)
         }
 
-        // Call Gemini API with Retry Logic
-        const makeGeminiRequest = async (retryCount = 0): Promise<Response> => {
+        // Call Groq API with Retry Logic
+        const makeGroqRequest = async (retryCount = 0): Promise<Response> => {
             try {
-                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                const response = await fetch(GROQ_API_URL, {
                     method: 'POST',
                     headers: {
+                        'Authorization': `Bearer ${GROQ_API_KEY}`,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: prompt }]
-                        }]
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: userPrompt }
+                        ],
+                        response_format: action === 'sentiment' ? { type: "json_object" } : undefined
                     }),
                 });
 
                 if (response.status === 429) {
                     if (retryCount < 3) {
                         const delay = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
-                        console.warn(`Gemini 429 hit. Retrying in ${Math.round(delay)}ms...`);
+                        console.warn(`Groq 429 hit. Retrying in ${Math.round(delay)}ms...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
-                        return makeGeminiRequest(retryCount + 1);
+                        return makeGroqRequest(retryCount + 1);
                     } else {
-                        throw new Error('Using too many requests. Please try again later.');
+                        throw new Error('Rate limit exceeded. Please try again later.');
                     }
                 }
 
                 if (!response.ok) {
                     const errorData = await response.text();
-                    console.error('Gemini API Error:', errorData);
-                    throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
+                    console.error('Groq API Error:', errorData);
+                    throw new Error(`Groq API Error: ${response.status} ${response.statusText}`);
                 }
 
                 return response;
             } catch (error) {
                 if (retryCount < 3 && (error instanceof TypeError || (error as any).message.includes('network'))) {
-                    // Retry on network errors too or keeping it simpler for just 429?
-                    // Let's stick to recursion for clarity
                     const delay = 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
-                    return makeGeminiRequest(retryCount + 1);
+                    return makeGroqRequest(retryCount + 1);
                 }
                 throw error;
             }
         };
 
-        const response = await makeGeminiRequest();
-
-
+        const response = await makeGroqRequest();
         const data = await response.json()
-        console.log('Gemini response received')
 
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-            console.error('Unexpected Gemini response structure:', JSON.stringify(data))
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            console.error('Unexpected Groq response structure:', JSON.stringify(data))
             throw new Error('Invalid response structure from AI provider')
         }
 
-        const generatedText = data.candidates[0].content.parts[0].text
+        const generatedText = data.choices[0].message.content
 
         let result = generatedText
         if (action === 'sentiment') {
             try {
+                // Ensure no markdown fencing if model ignores system prompt strictness
                 const cleanJson = generatedText.replace(/```json/g, '').replace(/```/g, '').trim()
                 result = JSON.parse(cleanJson)
             } catch (e) {

@@ -88,9 +88,11 @@ const ShareholderLogin = () => {
         return;
       }
 
-      const phone = data.phone;
-      if (!phone) {
-        toast.error("No mobile number registered for this shareholder.", {
+      const email = data.email;
+      const name = data.shareholder_name;
+
+      if (!email) {
+        toast.error("No email registered for this shareholder.", {
           description: "Please contact support to update your contact details."
         });
         return;
@@ -99,14 +101,21 @@ const ShareholderLogin = () => {
       // Store ID for next step
       setShareholderId(data.id);
 
-      // Mask Phone
-      const last4 = phone.slice(-4);
-      setMaskedPhone(`******${last4}`);
+      // Mask Email
+      const [localPart, domain] = email.split("@");
+      const maskedLocal = localPart.length > 3
+        ? `${localPart.slice(0, 3)}...`
+        : localPart;
+      setMaskedPhone(`${maskedLocal}@${domain}`); // Reusing maskedPhone state variable for simplicity
 
       // Trigger OTP
       try {
-        const { error: fnError } = await supabase.functions.invoke("send-sms-otp", {
-          body: { shareholder_id: data.id, phone: phone },
+        const { error: fnError } = await supabase.functions.invoke("send-shareholder-otp-email", {
+          body: {
+            shareholder_id: data.id,
+            email: email,
+            name: name
+          },
         });
 
         if (fnError) {
@@ -114,7 +123,7 @@ const ShareholderLogin = () => {
         }
 
         toast.success("Credentials Verified", {
-          description: `OTP sent to register mobile number ending in ${last4}`,
+          description: `OTP sent to register email ${maskedLocal}@${domain}`,
         });
         setLoginStep("OTP");
       } catch (err: any) {
@@ -381,9 +390,9 @@ const ShareholderLogin = () => {
                   <div className="mt-6 text-center">
                     <p className="text-sm text-muted-foreground">
                       Haven't received your credentials?{" "}
-                      <a href="#" className="text-primary font-medium hover:underline">
+                      <Link to="/contact" className="text-primary font-medium hover:underline">
                         Contact Support
-                      </a>
+                      </Link>
                     </p>
                   </div>
 

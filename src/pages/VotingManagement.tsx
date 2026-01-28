@@ -41,6 +41,8 @@ import { format } from "date-fns";
 import { sendEmail } from "@/lib/email";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const nomineeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -56,6 +58,8 @@ const sessionSchema = z.object({
   description: z.string().optional(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
+  meetingStartDate: z.string().optional(),
+  meetingEndDate: z.string().optional(),
   meetingLink: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   meetingPassword: z.string().optional(),
   meetingPlatform: z.string().optional(),
@@ -86,6 +90,8 @@ interface VotingSession {
   meeting_platform: string | null;
   voting_instructions: string | null;
   is_meeting_emails_sent: boolean;
+  meeting_start_date: string | null;
+  meeting_end_date: string | null;
 }
 
 interface Company {
@@ -121,6 +127,8 @@ const VotingManagement = () => {
     meetingLink: "",
     meetingPassword: "",
     meetingPlatform: "zoom",
+    meetingStartDate: "",
+    meetingEndDate: "",
     votingInstructions: "",
   });
 
@@ -212,6 +220,8 @@ const VotingManagement = () => {
         meetingLink: data.meeting_link || "",
         meetingPassword: data.meeting_password || "",
         meetingPlatform: data.meeting_platform || "zoom",
+        meetingStartDate: (data as any).meeting_start_date ? toLocalISOString((data as any).meeting_start_date) : (data.start_date ? toLocalISOString(data.start_date) : ""),
+        meetingEndDate: (data as any).meeting_end_date ? toLocalISOString((data as any).meeting_end_date) : (data.end_date ? toLocalISOString(data.end_date) : ""),
         votingInstructions: data.voting_instructions || "",
       });
       await loadNominees(data.id);
@@ -303,6 +313,8 @@ const VotingManagement = () => {
       const validatedData = sessionSchema.parse({
         ...sessionForm,
         meetingLink: sessionForm.meetingLink || undefined,
+        meetingStartDate: sessionForm.meetingStartDate || undefined,
+        meetingEndDate: sessionForm.meetingEndDate || undefined,
       });
 
       if (new Date(validatedData.endDate) <= new Date(validatedData.startDate)) {
@@ -326,8 +338,10 @@ const VotingManagement = () => {
         meeting_link: validatedData.meetingLink || null,
         meeting_password: validatedData.meetingPassword || null,
         meeting_platform: validatedData.meetingPlatform || "zoom",
+        meeting_start_date: validatedData.meetingStartDate ? new Date(validatedData.meetingStartDate).toISOString() : null,
+        meeting_end_date: validatedData.meetingEndDate ? new Date(validatedData.meetingEndDate).toISOString() : null,
         voting_instructions: validatedData.votingInstructions || null,
-      };
+      } as any;
 
       if (votingSession) {
         // Update existing session
@@ -426,7 +440,23 @@ const VotingManagement = () => {
         console.error("Error creating resolution for nominee:", resError);
         toast.warning("Nominee added but voting resolution could not be created automatically.");
       } else {
-        toast.success("Nominee added and voting resolution created successfully");
+        // Send Notification Email to Nominee
+        try {
+          await supabase.functions.invoke("send-nomination-email", {
+            body: {
+              name: validatedData.name,
+              email: validatedData.email,
+              designation: validatedData.designation,
+              companyName: company.company_name,
+              qualification: validatedData.qualification,
+              bio: validatedData.bio,
+            }
+          });
+          toast.success("Nominee added, resolution created, and notification email sent!");
+        } catch (emailError) {
+          console.error("Failed to send notification email:", emailError);
+          toast.success("Nominee added and resolution created (Email notification failed)");
+        }
       }
 
       setNomineeForm({
@@ -578,8 +608,8 @@ const VotingManagement = () => {
           meetingLink: sessionForm.meetingLink,
           meetingPassword: sessionForm.meetingPassword,
           meetingPlatform: sessionForm.meetingPlatform,
-          startDate: votingSession.start_date,
-          endDate: votingSession.end_date,
+          startDate: (votingSession as any).meeting_start_date || votingSession.start_date,
+          endDate: (votingSession as any).meeting_end_date || votingSession.end_date,
           votingInstructions: sessionForm.votingInstructions,
           recipients: recipients,
         }
@@ -612,6 +642,75 @@ const VotingManagement = () => {
     } finally {
       setIsSendingEmails(false);
     }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!company || !votingSession || results.length === 0) {
+      toast.error("No results to download");
+      return;
+    }
+
+    const doc = new jsPDF();
+
+    // 1. Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text(company.company_name, 14, 22);
+
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Voting Session Results", 14, 30);
+    doc.text(`Session: ${votingSession.title}`, 14, 36);
+    doc.text(`Date Generated: ${new Date().toLocaleString()}`, 14, 42);
+
+    // 2. Data Preparation for Table
+    const tableData = results.map((item, index) => [
+      index + 1,
+      item.title,
+      item.description || "N/A",
+      item.stats.for,
+      item.stats.against,
+      item.stats.abstain,
+      item.stats.winner ? "PASSED" : "NOT PASSED"
+    ]);
+
+    // 3. AutoTable
+    autoTable(doc, {
+      head: [['#', 'Resolution / Nominee', 'Details', 'For', 'Against', 'Abstain', 'Result']],
+      body: tableData,
+      startY: 50,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255 }, // Indigo-600 like color
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 20, halign: 'center' },
+        5: { cellWidth: 20, halign: 'center' },
+        6: { cellWidth: 25, halign: 'center', fontStyle: 'bold' }
+      },
+      didParseCell: function (data) {
+        if (data.section === 'body' && data.column.index === 6) {
+          if (data.cell.raw === 'PASSED') {
+            data.cell.styles.textColor = [22, 163, 74]; // Green
+          } else {
+            data.cell.styles.textColor = [220, 38, 38]; // Red
+          }
+        }
+      }
+    });
+
+    // 4. Footer
+    const finalY = (doc as any).lastAutoTable.finalY || 50;
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Generated by Vote India Secure Platform", 14, finalY + 10);
+
+    // 5. Save
+    doc.save(`voting_results_${votingSession.id.slice(0, 8)}.pdf`);
+    toast.success("PDF downloaded successfully!");
   };
 
   const getSessionStatus = () => {
@@ -1246,6 +1345,36 @@ const VotingManagement = () => {
                         />
                       </div>
 
+                      <div className="space-y-2">
+                        <Label htmlFor="meetingStartDate">Meeting Start Date & Time</Label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Input
+                            id="meetingStartDate"
+                            name="meetingStartDate"
+                            type="datetime-local"
+                            value={sessionForm.meetingStartDate}
+                            onChange={handleSessionInputChange}
+                            className="pl-11"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="meetingEndDate">Meeting End Date & Time</Label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Input
+                            id="meetingEndDate"
+                            name="meetingEndDate"
+                            type="datetime-local"
+                            value={sessionForm.meetingEndDate}
+                            onChange={handleSessionInputChange}
+                            className="pl-11"
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="meetingLink">Meeting Link *</Label>
                         <div className="relative">
@@ -1374,6 +1503,12 @@ const VotingManagement = () => {
                     <Trophy className="w-5 h-5 text-primary" />
                     Voting Results
                   </CardTitle>
+                  {votingSession && new Date(votingSession.end_date) <= new Date() && results.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="gap-2">
+                      <FileText className="w-4 h-4" />
+                      Download PDF
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent>
                   {!votingSession ? (

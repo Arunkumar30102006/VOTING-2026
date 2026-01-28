@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  Shield, 
-  Vote, 
-  Lock, 
-  Users, 
+import {
+  Shield,
+  Vote,
+  Lock,
+  Users,
   ArrowRight,
   CheckCircle2,
-  Building2
+  Building2,
+  ShieldCheck
 } from "lucide-react";
 
 const HeroSection = () => {
@@ -23,12 +24,12 @@ const HeroSection = () => {
       {/* Animated Background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted" />
-        
+
         {/* Animated circles */}
         <div className="absolute top-20 right-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/5 rounded-full blur-3xl animate-pulse-slow" />
-        
+
         {/* Grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
@@ -38,23 +39,22 @@ const HeroSection = () => {
           {/* Left Content */}
           <div className="text-center lg:text-left">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-medium mb-6 animate-fade-in-up">
-              <Shield className="w-4 h-4" />
-              <span>Trusted by 500+ Indian Companies</span>
+            <div className="inline-block animate-fade-in bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20 mb-6">
+              <span className="text-secondary font-semibold text-sm flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                Secure. Compliant. Transparent.
+              </span>
             </div>
 
-            {/* Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight mb-6 animate-fade-in-up delay-100">
-              Secure Digital Voting for{" "}
-              <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
-                Indian Shareholders
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+              Digital Governance for <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent animate-gradient">
+                Modern India
               </span>
             </h1>
 
-            {/* Description */}
-            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 animate-fade-in-up delay-200">
-              The most trusted e-voting platform for shareholder meetings. 
-              End-to-end encrypted, SEBI compliant, and designed for Indian companies.
+            <p className="text-lg md:text-xl text-muted-foreground/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+              ShareholderVoting.in is a digital platform for shareholders to securely participate in corporate voting, feedback, and governance activities. Experience seamless decision-making with bank-grade security.
             </p>
 
             {/* Feature Pills */}
@@ -146,9 +146,8 @@ const HeroSection = () => {
                       className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          item.status === "approved" ? "bg-accent" : "bg-secondary animate-pulse"
-                        }`} />
+                        <div className={`w - 2 h - 2 rounded - full ${item.status === "approved" ? "bg-accent" : "bg-secondary animate-pulse"
+                          } `} />
                         <span className="text-sm font-medium text-foreground">{item.label}</span>
                       </div>
                       <span className="text-sm text-muted-foreground">{item.votes} votes</span>

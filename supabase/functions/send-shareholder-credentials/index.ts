@@ -127,6 +127,11 @@ const handler = async (req: Request): Promise<Response> => {
                   <li>Delete this email after saving your credentials securely.</li>
                 </ul>
               </div>
+             <div style="text-align: center; margin-top: 24px;">
+                <a href="https://www.shareholdervoting.in/shareholder-login" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);">
+                  Login to Vote
+                </a>
+              </div>
             </div>
             
             <!-- Footer -->

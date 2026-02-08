@@ -4,11 +4,11 @@ import { Gavel, AlertTriangle, FileCheck, ShieldAlert } from "lucide-react";
 
 const TermsOfService = () => {
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative">
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20 max-w-4xl">
-                <div className="space-y-8">
-                    <div className="text-center space-y-4 border-b border-border pb-8">
+                <div className="space-y-8 bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">
+                    <div className="text-center space-y-4 border-b border-white/10 pb-8">
                         <h1 className="text-3xl md:text-4xl font-bold text-primary">Terms of Service</h1>
                         <p className="text-muted-foreground">Effective Date: January 22, 2026</p>
                     </div>

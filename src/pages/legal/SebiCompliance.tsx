@@ -4,7 +4,7 @@ import { Shield, CheckCircle } from "lucide-react";
 
 const SebiCompliance = () => {
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative">
             <Navbar />
             <div className="container mx-auto px-4 py-24 md:py-32 max-w-4xl">
                 <div className="flex items-center gap-4 mb-8">
@@ -20,7 +20,7 @@ const SebiCompliance = () => {
                 </p>
 
                 <div className="grid gap-8">
-                    <div className="bg-card border border-border/50 rounded-2xl p-6">
+                    <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                             <CheckCircle className="w-5 h-5 text-green-500" />
                             STQC Certification
@@ -31,7 +31,7 @@ const SebiCompliance = () => {
                         </p>
                     </div>
 
-                    <div className="bg-card border border-border/50 rounded-2xl p-6">
+                    <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                             <CheckCircle className="w-5 h-5 text-green-500" />
                             Audit Trail & Transparency
@@ -42,7 +42,7 @@ const SebiCompliance = () => {
                         </p>
                     </div>
 
-                    <div className="bg-card border border-border/50 rounded-2xl p-6">
+                    <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                             <CheckCircle className="w-5 h-5 text-green-500" />
                             Vote Secrecy
@@ -53,7 +53,7 @@ const SebiCompliance = () => {
                         </p>
                     </div>
 
-                    <div className="bg-card border border-border/50 rounded-2xl p-6">
+                    <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                             <CheckCircle className="w-5 h-5 text-green-500" />
                             Scrutinizer Access

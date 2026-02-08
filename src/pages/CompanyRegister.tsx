@@ -337,15 +337,15 @@ const CompanyRegister = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
 
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-              <Building2 className="w-4 h-4" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
+              <Building2 className="w-4 h-4 text-orange-400" />
               <span>Company Registration</span>
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -391,7 +391,7 @@ const CompanyRegister = () => {
             </div>
           </div>
 
-          <Card className="max-w-2xl mx-auto shadow-large border-border/50">
+          <Card className="max-w-2xl mx-auto shadow-large border-white/10 bg-card/10 backdrop-blur-md">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl">
                 {step === 1 && "Company Details"}

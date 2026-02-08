@@ -1,15 +1,14 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-  Shield,
-  Vote,
-  Lock,
-  Users,
-  ArrowRight,
+  ShieldCheck,
   CheckCircle2,
   Building2,
-  ShieldCheck
+  Users,
+  ArrowRight
 } from "lucide-react";
+import BlurText from "@/components/ui/BlurText";
+import { motion } from "motion/react";
 
 const HeroSection = () => {
   const features = [
@@ -23,7 +22,7 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted" />
+        <div className="absolute inset-0 bg-transparent" />
 
         {/* Animated circles */}
         <div className="absolute top-20 right-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl animate-float" />
@@ -35,44 +34,55 @@ const HeroSection = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12 md:py-20">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left Content */}
-          <div className="text-center lg:text-left">
+        <div className="flex flex-col items-center justify-center text-center">
+          {/* Main Content */}
+          <div className="max-w-4xl mx-auto">
             {/* Badge */}
-            <div className="inline-block animate-fade-in bg-secondary/10 px-4 py-1.5 rounded-full border border-secondary/20 mb-6">
-              <span className="text-secondary font-semibold text-sm flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="inline-block animate-fade-in bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-sm">
+              <span className="text-white font-semibold text-sm flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-blue-400" />
                 Secure. Compliant. Transparent.
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-tight">
-              Digital Governance for <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent animate-gradient">
+            <div className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight flex flex-col items-center gap-2">
+              <BlurText
+                text="Digital Governance for"
+                className="text-foreground text-center"
+                delay={200}
+                animateBy="words"
+                direction="top"
+              />
+              <motion.span
+                initial={{ filter: 'blur(10px)', opacity: 0, y: 50 }}
+                animate={{ filter: 'blur(0px)', opacity: 1, y: 0 }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+                className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-300 animate-gradient text-center inline-block"
+              >
                 Modern India
-              </span>
-            </h1>
+              </motion.span>
+            </div>
 
-            <p className="text-lg md:text-xl text-muted-foreground/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
               ShareholderVoting.in is a digital platform for shareholders to securely participate in corporate voting, feedback, and governance activities. Experience seamless decision-making with bank-grade security.
             </p>
 
             {/* Feature Pills */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-8 animate-fade-in-up delay-300">
+            <div className="flex flex-wrap justify-center gap-3 mb-8 animate-fade-in-up delay-300">
               {features.map((feature, index) => (
                 <div
                   key={feature}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-sm text-foreground"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-sm text-white/90 shadow-sm transition-all hover:bg-white/10"
                   style={{ animationDelay: `${300 + index * 100}ms` }}
                 >
-                  <CheckCircle2 className="w-4 h-4 text-accent" />
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
                   <span>{feature}</span>
                 </div>
               ))}
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up delay-400">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
               <Link to="/company-register">
                 <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2">
                   <Building2 className="w-5 h-5" />
@@ -89,7 +99,7 @@ const HeroSection = () => {
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex items-center justify-center lg:justify-start gap-8 mt-10 animate-fade-in-up delay-500">
+            <div className="flex items-center justify-center gap-8 mt-12 animate-fade-in-up delay-500">
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground">10M+</p>
                 <p className="text-sm text-muted-foreground">Votes Cast</p>
@@ -104,81 +114,6 @@ const HeroSection = () => {
                 <p className="text-3xl font-bold text-foreground">99.9%</p>
                 <p className="text-sm text-muted-foreground">Uptime</p>
               </div>
-            </div>
-          </div>
-
-          {/* Right Content - Illustration */}
-          <div className="relative flex justify-center lg:justify-end animate-scale-in delay-300">
-            <div className="relative w-full max-w-md lg:max-w-lg">
-              {/* Main Card */}
-              <div className="relative z-10 bg-card rounded-3xl shadow-large p-8 border border-border/50">
-                {/* Card Header */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-medium">
-                    <Vote className="w-7 h-7 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-foreground">Annual General Meeting</h3>
-                    <p className="text-sm text-muted-foreground">Active Voting Session</p>
-                  </div>
-                </div>
-
-                {/* Progress */}
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Voting Progress</span>
-                    <span className="font-semibold text-accent">76%</span>
-                  </div>
-                  <div className="h-3 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full w-[76%] bg-gradient-to-r from-accent to-emerald-400 rounded-full animate-pulse-slow" />
-                  </div>
-                </div>
-
-                {/* Voting Items */}
-                <div className="space-y-3">
-                  {[
-                    { label: "Director Re-election", votes: "12,450", status: "approved" },
-                    { label: "Dividend Declaration", votes: "11,890", status: "approved" },
-                    { label: "Auditor Appointment", votes: "10,234", status: "pending" },
-                  ].map((item, index) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w - 2 h - 2 rounded - full ${item.status === "approved" ? "bg-accent" : "bg-secondary animate-pulse"
-                          } `} />
-                        <span className="text-sm font-medium text-foreground">{item.label}</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">{item.votes} votes</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Security Badge */}
-                <div className="flex items-center gap-2 mt-6 p-3 rounded-xl bg-accent/10 border border-accent/20">
-                  <Lock className="w-5 h-5 text-accent" />
-                  <span className="text-sm font-medium text-accent">256-bit Encrypted Session</span>
-                </div>
-              </div>
-
-              {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 z-20 bg-card rounded-2xl shadow-medium p-4 border border-border/50 animate-bounce-gentle">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-accent" />
-                  <span className="text-sm font-semibold text-foreground">Verified Secure</span>
-                </div>
-              </div>
-
-              <div className="absolute -bottom-4 -left-4 z-20 bg-secondary rounded-2xl shadow-glow p-4 animate-float">
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-secondary-foreground" />
-                  <span className="text-sm font-semibold text-secondary-foreground">15,234 Active</span>
-                </div>
-              </div>
-
-              {/* Background Glow */}
-              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur-3xl scale-110" />
             </div>
           </div>
         </div>

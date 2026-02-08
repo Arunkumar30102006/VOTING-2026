@@ -194,9 +194,9 @@ INSTRUCTIONS:
             {!isOpen && (
                 <Button
                     onClick={() => setIsOpen(true)}
-                    className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 animate-bounce"
+                    className="h-14 w-14 rounded-full bg-white/5 backdrop-blur-lg border border-white/30 text-white shadow-lg hover:bg-white/10 hover:scale-110 transition-all duration-300"
                 >
-                    <MessageCircle className="h-6 w-6 text-white" />
+                    <MessageCircle className="h-6 w-6" />
                 </Button>
             )}
 

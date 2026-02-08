@@ -735,7 +735,7 @@ const VotingManagement = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading voting management...</p>
@@ -747,7 +747,7 @@ const VotingManagement = () => {
   const sessionStatus = getSessionStatus();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
 
       <main className="pt-24 pb-16">

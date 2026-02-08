@@ -29,11 +29,11 @@ const AIPowerSuite = () => {
     };
 
     if (loading) {
-        return <div className="min-h-screen bg-background" />;
+        return <div className="min-h-screen" />;
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative">
             <Navbar />
 
             <main className="pt-24 pb-16">
@@ -43,7 +43,7 @@ const AIPowerSuite = () => {
                         <div>
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-sm font-medium mb-4">
                                 <Sparkles className="w-4 h-4" />
-                                <span>AI Power Suite</span>
+                                <span className="text-foreground">AI Power Suite</span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
                                 Advanced AI{" "}
@@ -63,7 +63,7 @@ const AIPowerSuite = () => {
 
                     {/* AI Value Proposition */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <Card className="border-blue-500/20 bg-blue-50/50 dark:bg-blue-900/10">
+                        <Card className="border-blue-500/20 bg-card/10 backdrop-blur-md">
                             <CardContent className="pt-6">
                                 <div className="flex items-start gap-4">
                                     <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
@@ -79,7 +79,7 @@ const AIPowerSuite = () => {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-purple-500/20 bg-purple-50/50 dark:bg-purple-900/10">
+                        <Card className="border-purple-500/20 bg-card/10 backdrop-blur-md">
                             <CardContent className="pt-6">
                                 <div className="flex items-start gap-4">
                                     <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
@@ -95,7 +95,7 @@ const AIPowerSuite = () => {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10">
+                        <Card className="border-indigo-500/20 bg-card/10 backdrop-blur-md">
                             <CardContent className="pt-6">
                                 <div className="flex items-start gap-4">
                                     <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
@@ -112,7 +112,7 @@ const AIPowerSuite = () => {
                         </Card>
                     </div>
 
-                    <Card className="border-purple-500/20 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-900 overflow-hidden relative min-h-[500px]">
+                    <Card className="border-purple-500/20 bg-card/10 backdrop-blur-md overflow-hidden relative min-h-[500px]">
                         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
                             <Sparkles className="w-64 h-64 text-purple-600" />
                         </div>

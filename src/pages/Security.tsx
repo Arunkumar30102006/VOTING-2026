@@ -4,7 +4,7 @@ import { Shield, Lock, Server, FileCheck, Eye, BadgeCheck } from "lucide-react";
 
 const Security = () => {
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative">
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20">
                 <div className="max-w-5xl mx-auto space-y-16">
@@ -23,21 +23,21 @@ const Security = () => {
 
                     {/* Key Security Pillars */}
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <div className="p-8 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-all">
+                        <div className="p-8 rounded-2xl bg-card/10 backdrop-blur-md border border-white/10 shadow-sm hover:shadow-md transition-all">
                             <Lock className="w-8 h-8 text-accent mb-4" />
                             <h3 className="text-xl font-bold mb-3">256-bit Encryption</h3>
                             <p className="text-muted-foreground">
                                 All data is encrypted at rest and in transit using industry-standard AES-256 encryption protocols.
                             </p>
                         </div>
-                        <div className="p-8 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-all">
+                        <div className="p-8 rounded-2xl bg-card/10 backdrop-blur-md border border-white/10 shadow-sm hover:shadow-md transition-all">
                             <Server className="w-8 h-8 text-primary mb-4" />
                             <h3 className="text-xl font-bold mb-3">Data Sovereignty</h3>
                             <p className="text-muted-foreground">
                                 Your data resides securely within Indian borders, complying with the Digital Personal Data Protection Act, 2023.
                             </p>
                         </div>
-                        <div className="p-8 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-all">
+                        <div className="p-8 rounded-2xl bg-card/10 backdrop-blur-md border border-white/10 shadow-sm hover:shadow-md transition-all">
                             <FileCheck className="w-8 h-8 text-secondary mb-4" />
                             <h3 className="text-xl font-bold mb-3">Audit Trails</h3>
                             <p className="text-muted-foreground">
@@ -47,7 +47,7 @@ const Security = () => {
                     </div>
 
                     {/* Infrastructure Section */}
-                    <div className="bg-muted/30 rounded-3xl p-8 md:p-12 border border-border/50">
+                    <div className="bg-black/20 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-white/10">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div className="space-y-6">
                                 <h2 className="text-3xl font-bold">Resilient Infrastructure</h2>

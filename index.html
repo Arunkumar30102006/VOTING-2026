@@ -19,26 +19,29 @@
     body {
       margin: 0;
       padding: 0;
-      background-color: #020817; /* Dark background */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background-color: #020817;
+      /* Dark background */
       font-family: system-ui, -apple-system, sans-serif;
     }
 
     .loader-container {
+      position: fixed;
+      inset: 0;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
       gap: 1.5rem;
+      background-color: #020817;
+      z-index: 9999;
     }
 
     .loader {
       width: 48px;
       height: 48px;
       border: 5px solid #1e293b;
-      border-bottom-color: #f97316; /* Orange */
+      border-bottom-color: #f97316;
+      /* Orange */
       border-radius: 50%;
       display: inline-block;
       box-sizing: border-box;

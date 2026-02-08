@@ -15,7 +15,71 @@
 </head>
 
 <body>
-  <div id="root">Loading...</div>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #020817; /* Dark background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .loader-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .loader {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #1e293b;
+      border-bottom-color: #f97316; /* Orange */
+      border-radius: 50%;
+      display: inline-block;
+      box-sizing: border-box;
+      animation: rotation 1s linear infinite;
+    }
+
+    .loading-text {
+      color: #94a3b8;
+      font-size: 0.875rem;
+      letter-spacing: 0.05em;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes rotation {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+  </style>
+  <div id="root">
+    <div class="loader-container">
+      <span class="loader"></span>
+      <div class="loading-text">Loading Vote India...</div>
+    </div>
+  </div>
 
   <script type="module" src="/src/main.tsx"></script>
 </body>

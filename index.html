@@ -15,148 +15,41 @@
 </head>
 
 <body>
-<<<<<<< HEAD
   <div id="root">
     <style>
-      .initial-loader {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background-color: #f9fafb; /* gray-50 */
+      body {
+        margin: 0;
+        background-color: hsl(222, 65%, 8%);
       }
-      @media (prefers-color-scheme: dark) {
-        .initial-loader {
-          background-color: #111827; /* gray-900 */
+
+      .app-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        background-color: hsl(222, 65%, 8%);
+      }
+
+      .loader-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid hsl(222, 65%, 18%);
+        border-top-color: hsl(30, 95%, 55%);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        box-shadow: 0 0 15px rgba(250, 140, 22, 0.3);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
       }
-      .spinner-container {
-        position: relative;
-        width: 6rem; /* 24 * 0.25rem = 6rem */
-        height: 6rem;
-      }
-      .ring {
-        position: absolute;
-        border-radius: 50%;
-        border-width: 4px;
-        border-style: solid;
-        border-color: transparent;
-      }
-      .ring-1 {
-        inset: 0;
-        border-top-color: #3b82f6; /* blue-500 */
-        animation: spin 1s linear infinite;
-      }
-      .ring-2 {
-        inset: 0.5rem; /* 2 * 0.25rem */
-        border-left-color: #a855f7; /* purple-500 */
-        animation: spin 1.5s linear infinite reverse;
-      }
-      .ring-3 {
-        inset: 1rem; /* 4 * 0.25rem */
-        border-right-color: #ec4899; /* pink-500 */
-        animation: spin 2s linear infinite;
-      }
-      .center-dot {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .dot {
-        width: 0.75rem; /* 3 * 0.25rem */
-        height: 0.75rem;
-        border-radius: 50%;
-        background: linear-gradient(to right, #3b82f6, #ec4899);
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      }
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: .5; }
-      }
     </style>
-    <div class="initial-loader">
-      <div class="spinner-container">
-        <div class="ring ring-1"></div>
-        <div class="ring ring-2"></div>
-        <div class="ring ring-3"></div>
-        <div class="center-dot">
-          <div class="dot"></div>
-        </div>
-      </div>
-=======
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #020817;
-      /* Dark background */
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-
-    .loader-container {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 1.5rem;
-      background-color: #020817;
-      z-index: 9999;
-    }
-
-    .loader {
-      width: 48px;
-      height: 48px;
-      border: 5px solid #1e293b;
-      border-bottom-color: #f97316;
-      /* Orange */
-      border-radius: 50%;
-      display: inline-block;
-      box-sizing: border-box;
-      animation: rotation 1s linear infinite;
-    }
-
-    .loading-text {
-      color: #94a3b8;
-      font-size: 0.875rem;
-      letter-spacing: 0.05em;
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    @keyframes rotation {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
-    }
-  </style>
-  <div id="root">
-    <div class="loader-container">
-      <span class="loader"></span>
-      <div class="loading-text">Loading Vote India...</div>
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
+    <div class="app-loader">
+      <div class="loader-spinner"></div>
     </div>
   </div>
 

@@ -8,7 +8,6 @@ import {
   Users,
   ArrowRight
 } from "lucide-react";
-import BlurText from "@/components/ui/BlurText";
 import { motion } from "motion/react";
 
 const HeroSection = () => {
@@ -35,15 +34,9 @@ const HeroSection = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12 md:py-20">
-<<<<<<< HEAD
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Main Content */}
-          <div>
-=======
         <div className="flex flex-col items-center justify-center text-center">
           {/* Main Content */}
           <div className="max-w-4xl mx-auto">
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
             {/* Badge */}
             <div className="inline-block animate-fade-in bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-sm">
               <span className="text-white font-semibold text-sm flex items-center gap-2">
@@ -52,23 +45,6 @@ const HeroSection = () => {
               </span>
             </div>
 
-<<<<<<< HEAD
-            <div className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-tight flex flex-col items-center">
-              <BlurText
-                text="Digital Governance for"
-                delay={50}
-                animateBy="words"
-                direction="top"
-                className="text-foreground"
-              />
-              <BlurText
-                text="Modern India"
-                delay={50}
-                animateBy="words"
-                direction="bottom"
-                className="text-accent mt-2"
-              />
-=======
             <div className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight flex flex-col items-center gap-2">
               <BlurText
                 text="Digital Governance for"
@@ -85,7 +61,6 @@ const HeroSection = () => {
               >
                 Modern India
               </motion.span>
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
             </div>
 
             <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
@@ -125,11 +100,7 @@ const HeroSection = () => {
             </div>
 
             {/* Trust Indicators */}
-<<<<<<< HEAD
-            <div className="flex items-center justify-center gap-8 mt-10 animate-fade-in-up delay-500">
-=======
             <div className="flex items-center justify-center gap-8 mt-12 animate-fade-in-up delay-500">
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground">10M+</p>
                 <p className="text-sm text-muted-foreground">Votes Cast</p>

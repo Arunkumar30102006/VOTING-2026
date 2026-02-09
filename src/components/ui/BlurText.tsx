@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-export type Easing = (v: number) => number;
-
-import { motion, Transition } from 'framer-motion';
-=======
 import { motion, Transition, Easing } from 'motion/react';
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
 import { useEffect, useRef, useState, useMemo } from 'react';
 
 type BlurTextProps = {
@@ -47,11 +41,7 @@ const BlurText: React.FC<BlurTextProps> = ({
     animationTo,
     easing = (t: number) => t,
     onAnimationComplete,
-<<<<<<< HEAD
-    stepDuration = 0.35,
-=======
     stepDuration = 0.35
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
 }) => {
     const elements = animateBy === 'words' ? text.split(' ') : text.split('');
     const [inView, setInView] = useState(false);
@@ -83,15 +73,9 @@ const BlurText: React.FC<BlurTextProps> = ({
             {
                 filter: 'blur(5px)',
                 opacity: 0.5,
-<<<<<<< HEAD
-                y: direction === 'top' ? 5 : -5,
-            },
-            { filter: 'blur(0px)', opacity: 1, y: 0 },
-=======
                 y: direction === 'top' ? 5 : -5
             },
             { filter: 'blur(0px)', opacity: 1, y: 0 }
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
         ],
         [direction]
     );
@@ -104,11 +88,7 @@ const BlurText: React.FC<BlurTextProps> = ({
     const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
 
     return (
-<<<<<<< HEAD
-        <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
-=======
         <p ref={ref} className={`blur-text ${className} inline-block`}>
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
             {elements.map((segment, index) => {
                 const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
 
@@ -116,31 +96,19 @@ const BlurText: React.FC<BlurTextProps> = ({
                     duration: totalDuration,
                     times,
                     delay: (index * delay) / 1000,
-<<<<<<< HEAD
-                    ease: easing,
-=======
                     ease: easing
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
                 };
 
                 return (
                     <motion.span
                         key={index}
-<<<<<<< HEAD
-                        initial={fromSnapshot || {}}
-=======
                         initial={fromSnapshot}
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
                         animate={inView ? animateKeyframes : fromSnapshot}
                         transition={spanTransition}
                         onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
                         style={{
                             display: 'inline-block',
-<<<<<<< HEAD
-                            willChange: 'transform, filter, opacity',
-=======
                             willChange: 'transform, filter, opacity'
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
                         }}
                     >
                         {segment === ' ' ? '\u00A0' : segment}

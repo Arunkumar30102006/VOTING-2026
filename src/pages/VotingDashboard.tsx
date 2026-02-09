@@ -260,15 +260,7 @@ const VotingDashboard = () => {
   const progress = (totalVoted / votingItems.length) * 100;
 
   if (isLoading) {
-<<<<<<< HEAD
     return <LoadingSpinner />;
-=======
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading voting dashboard...</p>
-      </div>
-    );
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
   }
 
   return (

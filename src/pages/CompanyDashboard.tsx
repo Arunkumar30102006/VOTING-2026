@@ -441,18 +441,7 @@ const CompanyDashboard = () => {
   };
 
   if (isLoading) {
-<<<<<<< HEAD
     return <LoadingSpinner />;
-=======
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
->>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
   }
 
   return (

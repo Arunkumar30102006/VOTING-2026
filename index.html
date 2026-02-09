@@ -15,7 +15,81 @@
 </head>
 
 <body>
-  <div id="root">Loading...</div>
+  <div id="root">
+    <style>
+      .initial-loader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: #f9fafb; /* gray-50 */
+      }
+      @media (prefers-color-scheme: dark) {
+        .initial-loader {
+          background-color: #111827; /* gray-900 */
+        }
+      }
+      .spinner-container {
+        position: relative;
+        width: 6rem; /* 24 * 0.25rem = 6rem */
+        height: 6rem;
+      }
+      .ring {
+        position: absolute;
+        border-radius: 50%;
+        border-width: 4px;
+        border-style: solid;
+        border-color: transparent;
+      }
+      .ring-1 {
+        inset: 0;
+        border-top-color: #3b82f6; /* blue-500 */
+        animation: spin 1s linear infinite;
+      }
+      .ring-2 {
+        inset: 0.5rem; /* 2 * 0.25rem */
+        border-left-color: #a855f7; /* purple-500 */
+        animation: spin 1.5s linear infinite reverse;
+      }
+      .ring-3 {
+        inset: 1rem; /* 4 * 0.25rem */
+        border-right-color: #ec4899; /* pink-500 */
+        animation: spin 2s linear infinite;
+      }
+      .center-dot {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .dot {
+        width: 0.75rem; /* 3 * 0.25rem */
+        height: 0.75rem;
+        border-radius: 50%;
+        background: linear-gradient(to right, #3b82f6, #ec4899);
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
+      }
+    </style>
+    <div class="initial-loader">
+      <div class="spinner-container">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+        <div class="center-dot">
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="/src/main.tsx"></script>
 </body>

@@ -43,6 +43,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const nomineeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -734,14 +735,7 @@ const VotingManagement = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading voting management...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   const sessionStatus = getSessionStatus();

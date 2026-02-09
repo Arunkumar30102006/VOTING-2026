@@ -18,7 +18,7 @@ interface Message {
 export const VoteAssistant = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: 'Hello! I am your AI Vote Assistant. Ask me anything about the voting process, dates, or agenda items.' }
+        { role: 'assistant', content: 'Hello! I am your AI Vote Assistant (v2). Ask me anything about the voting process, dates, or agenda items.' }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -28,34 +28,69 @@ export const VoteAssistant = () => {
 
     // Speech Recognition Setup
     const recognitionRef = useRef<any>(null);
+    const [debugStatus, setDebugStatus] = useState<string>(""); // For visual debugging
 
-    useEffect(() => {
-        // Initialize Speech Recognition if available
+    const initializeSpeech = () => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = false;
-            recognitionRef.current.interimResults = false;
-            recognitionRef.current.lang = 'en-US';
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
 
-            recognitionRef.current.onresult = (event: any) => {
-                const transcript = event.results[0][0].transcript;
-                setInputValue(transcript);
-                // Optional: Auto-send if confidence is high? For now let user confirm or just fill input.
-                // Let's auto-send to make it "voice assistant" like.
-                handleSend(transcript);
+            recognition.onstart = () => {
+                setDebugStatus("Status: Listening...");
+                setIsListening(true);
+                toast.info("Listening... Speak now.");
             };
 
-            recognitionRef.current.onerror = (event: any) => {
-                console.error('Speech recognition error', event.error);
+            recognition.onresult = (event: any) => {
+                setDebugStatus("Status: Result received");
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        setInputValue(event.results[i][0].transcript);
+                    }
+                }
+
+                if (finalTranscript) {
+                    setInputValue(finalTranscript);
+                    handleSend(finalTranscript);
+                }
+            };
+
+            recognition.onerror = (event: any) => {
+                setDebugStatus(`Status: Error - ${event.error}`);
+                console.error('Speech error:', event.error);
                 setIsListening(false);
-                toast.error("Voice input failed. Please check microphone permissions.");
+                if (event.error === 'not-allowed') {
+                    toast.error("Microphone blocked. Allow access in address bar.");
+                } else if (event.error === 'no-speech') {
+                    toast.info("No speech detected.");
+                } else {
+                    toast.error(`Error: ${event.error}`);
+                }
             };
 
-            recognitionRef.current.onend = () => {
+            recognition.onend = () => {
+                if (debugStatus !== "Status: Result received") {
+                    setDebugStatus("Status: Stopped");
+                }
                 setIsListening(false);
             };
+
+            recognitionRef.current = recognition;
+            return true;
+        } else {
+            setDebugStatus("Status: Not Supported");
+            return false;
         }
+    };
+
+    useEffect(() => {
+        initializeSpeech();
     }, []);
 
     useEffect(() => {
@@ -68,17 +103,29 @@ export const VoteAssistant = () => {
         if (isListening) {
             recognitionRef.current?.stop();
             setIsListening(false);
+            setDebugStatus("Status: Stopped by user");
         } else {
-            if (recognitionRef.current) {
-                try {
-                    recognitionRef.current.start();
-                    setIsListening(true);
-                    toast.info("Listening...");
-                } catch (e) {
-                    console.error(e);
+            if (!recognitionRef.current) {
+                const success = initializeSpeech();
+                if (!success) {
+                    toast.error("Voice input not supported.");
+                    return;
                 }
-            } else {
-                toast.error("Voice input is not supported in this browser.");
+            }
+
+            try {
+                recognitionRef.current.start();
+                setDebugStatus("Status: Starting...");
+            } catch (e: any) {
+                console.error("Start error:", e);
+                setDebugStatus(`Status: Start Error - ${e.message}`);
+                // If it fails (e.g. already started), try to stop and restart
+                try {
+                    recognitionRef.current.stop();
+                    setTimeout(() => recognitionRef.current.start(), 100);
+                } catch (retryError) {
+                    toast.error("Could not start microphone.");
+                }
             }
         }
     };
@@ -106,8 +153,16 @@ export const VoteAssistant = () => {
         setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
         setIsLoading(true);
 
-        // If text came from voice (textOverride) or speaking is enabled, read the response
-        const shouldRead = !!textOverride || isSpeaking;
+        // If text came from voice (textOverride) or speaking is enabled, check if we should read
+        // However, if the user explicitly muted (isSpeaking is false), we should NOT read even if voice input was used.
+        // Or should we? Let's check common behavior. Usually, if I speak to Siri, it speaks back.
+        // But the user complained "if they mute means the sound is out".
+        // Let's interpret "sound is out" as "sound is emitted when it shouldn't be".
+        // So we strictly follow isSpeaking.
+
+        // If the user uses microphone but isSpeaking is false, maybe we should auto-enable it?
+        // No, let's respect the toggle.
+        const shouldRead = isSpeaking;
 
         try {
             const apiKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -190,31 +245,46 @@ INSTRUCTIONS:
     };
 
     return (
-        <div className="fixed bottom-6 left-6 z-50">
+        <div className="fixed bottom-6 right-6 z-50">
             {!isOpen && (
                 <Button
                     onClick={() => setIsOpen(true)}
-                    className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 animate-bounce"
+                    className="h-14 w-14 rounded-full bg-primary/90 hover:bg-primary text-primary-foreground shadow-2xl hover:shadow-[0_0_20px_rgba(var(--primary),0.5)] transition-all duration-300 backdrop-blur-sm border border-white/10"
                 >
-                    <MessageCircle className="h-6 w-6 text-white" />
+                    <MessageCircle className="h-6 w-6" />
                 </Button>
             )}
 
             {isOpen && (
-                <Card className="w-[350px] h-[500px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-300 border-gray-200 dark:border-gray-700">
-                    <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-xl p-4 flex flex-row items-center justify-between shrink-0">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <Bot className="h-5 w-5" />
-                            Vote Assistant
-                        </CardTitle>
+                <div className="w-[380px] h-[600px] flex flex-col shadow-2xl animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-3xl border border-white/10 overflow-hidden backdrop-blur-xl bg-black/40">
+                    {/* Glassy Header */}
+                    <div className="bg-white/5 backdrop-blur-md p-4 flex flex-row items-center justify-between shrink-0 border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-inner">
+                                <Bot className="h-6 w-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-white text-base">Vote Assistant</h3>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                    </span>
+                                    <p className="text-xs text-zinc-400">Online</p>
+                                </div>
+                            </div>
+                        </div>
                         <div className="flex gap-1">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-white hover:bg-white/20"
+                                className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
                                 onClick={() => {
                                     const newState = !isSpeaking;
                                     setIsSpeaking(newState);
+                                    if (!newState) {
+                                        window.speechSynthesis.cancel();
+                                    }
                                     toast.info(newState ? "Voice Output Enabled" : "Voice Output Disabled");
                                 }}
                                 title={isSpeaking ? "Mute Text-to-Speech" : "Enable Text-to-Speech"}
@@ -224,86 +294,107 @@ INSTRUCTIONS:
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-white hover:bg-white/20"
+                                className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
                                 onClick={() => setIsOpen(false)}
                             >
                                 <X className="h-5 w-5" />
                             </Button>
                         </div>
-                    </CardHeader>
+                    </div>
 
-                    <CardContent className="flex-1 p-0 flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
-                            {messages.map((msg, idx) => (
-                                <div
-                                    key={idx}
-                                    className={cn(
-                                        "flex w-full items-start gap-2",
-                                        msg.role === 'user' ? "flex-row-reverse" : "flex-row"
-                                    )}
-                                >
-                                    <div className={cn(
-                                        "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
-                                        msg.role === 'user' ? "bg-blue-600" : "bg-purple-600"
-                                    )}>
-                                        {msg.role === 'user' ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
-                                    </div>
-                                    <div className={cn(
-                                        "max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm",
-                                        msg.role === 'user'
-                                            ? "bg-blue-600 text-white rounded-tr-none"
-                                            : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-gray-700"
-                                    )}>
-                                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                                    </div>
-                                </div>
-                            ))}
-                            {isLoading && (
-                                <div className="flex w-full items-start gap-2 flex-row">
-                                    <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center shrink-0">
-                                        <Bot className="h-4 w-4 text-white" />
-                                    </div>
-                                    <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-2 shadow-sm border border-gray-100 dark:border-gray-700">
-                                        <Loader2 className="h-4 w-4 animate-spin text-purple-600" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
-                            <form
-                                onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                                className="flex gap-2"
+                    {/* Chat Content */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" ref={scrollRef}>
+                        {messages.map((msg, idx) => (
+                            <div
+                                key={idx}
+                                className={cn(
+                                    "flex w-full items-end gap-2",
+                                    msg.role === 'user' ? "flex-row-reverse" : "flex-row"
+                                )}
                             >
+                                {msg.role !== 'user' && (
+                                    <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 mb-1">
+                                        <Bot className="h-3 w-3 text-white/70" />
+                                    </div>
+                                )}
+
+                                <div className={cn(
+                                    "max-w-[85%] px-4 py-2.5 text-sm shadow-sm backdrop-blur-md",
+                                    msg.role === 'user'
+                                        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm"
+                                        : "bg-white/10 text-zinc-100 rounded-2xl rounded-tl-sm border border-white/5"
+                                )}>
+                                    <div className="prose prose-invert prose-sm max-w-none">
+                                        <ReactMarkdown>
+                                            {msg.content}
+                                        </ReactMarkdown>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {isLoading && (
+                            <div className="flex w-full items-end gap-2 flex-row">
+                                <div className="h-6 w-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 mb-1">
+                                    <Bot className="h-3 w-3 text-white/70" />
+                                </div>
+                                <div className="bg-white/10 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm border border-white/5 backdrop-blur-md">
+                                    <div className="flex gap-1">
+                                        <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                        <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                        <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Input Area */}
+                    <div className="p-4 bg-transparent mt-auto backdrop-blur-md">
+                        <form
+                            onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                            className="relative flex items-center"
+                        >
+                            <div className="absolute left-2 flex items-center z-10">
                                 <Button
                                     type="button"
                                     size="icon"
-                                    variant="outline"
-                                    className={cn("shrink-0 transition-colors", isListening && "bg-red-100 border-red-500 text-red-600 animate-pulse")}
-                                    onClick={toggleListening}
+                                    variant="ghost"
+                                    className={cn(
+                                        "h-8 w-8 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors",
+                                        isListening && "text-red-500 hover:text-red-400 animate-pulse bg-red-500/10"
+                                    )}
+                                    // Make sure button itself is clickable
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        toggleListening();
+                                    }}
                                     title="Voice Input"
                                 >
                                     {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                                 </Button>
+                            </div>
 
-                                <Input
-                                    placeholder={isListening ? "Listening..." : "Ask a question..."}
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    className="flex-1 focus-visible:ring-purple-500"
-                                />
+                            <Input
+                                placeholder={isListening ? "Listening..." : "Ask AI..."}
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                className="w-full pl-12 pr-12 h-12 rounded-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-primary/50 focus-visible:border-primary/50 backdrop-blur-sm transition-all shadow-inner"
+                            />
+
+                            <div className="absolute right-2 flex items-center">
                                 <Button
                                     type="submit"
                                     size="icon"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white shrink-0"
+                                    className="h-8 w-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-transform active:scale-95"
                                     disabled={isLoading || (!inputValue.trim() && !isListening)}
                                 >
-                                    <Send className="h-4 w-4" />
+                                    <Send className="h-3.5 w-3.5 ml-0.5" />
                                 </Button>
-                            </form>
-                        </div>
-                    </CardContent>
-                </Card>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
         </div>
     );

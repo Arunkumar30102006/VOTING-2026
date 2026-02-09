@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { generateVoteHash, getExplorerLink } from "@/lib/blockchain";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 interface VotingItem {
   id: string;
@@ -259,11 +260,7 @@ const VotingDashboard = () => {
   const progress = (totalVoted / votingItems.length) * 100;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading voting dashboard...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

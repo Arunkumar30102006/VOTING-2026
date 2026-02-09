@@ -44,6 +44,7 @@ import { AIAnalysisDemo } from "@/components/company/AIAnalysisDemo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea"; // Ensure we have this or import it
 import { Sparkles, FileText, BrainCircuit } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -440,14 +441,7 @@ const CompanyDashboard = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

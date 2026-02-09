@@ -11,7 +11,7 @@ const CTASection = () => {
   ];
 
   return (
-    <section className="py-20 md:py-32 relative overflow-hidden bg-muted/30">
+    <section className="py-20 md:py-32 relative overflow-hidden bg-transparent">
       {/* Background Pattern */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)]" />
@@ -22,8 +22,8 @@ const CTASection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border shadow-sm text-primary text-sm font-medium mb-8">
-            <Shield className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-sm text-white text-sm font-medium mb-8">
+            <Shield className="w-4 h-4 text-orange-400" />
             <span>Start Your Free Trial Today</span>
           </div>
 
@@ -44,9 +44,9 @@ const CTASection = () => {
             {benefits.map((benefit) => (
               <div
                 key={benefit}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border shadow-sm text-card-foreground text-sm"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 shadow-sm text-white/90 text-sm"
               >
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <CheckCircle2 className="w-4 h-4 text-green-400" />
                 <span>{benefit}</span>
               </div>
             ))}

@@ -441,11 +441,22 @@ const CompanyDashboard = () => {
   };
 
   if (isLoading) {
+<<<<<<< HEAD
     return <LoadingSpinner />;
+=======
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+>>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
 
       <main className="pt-24 pb-16">
@@ -518,7 +529,7 @@ const CompanyDashboard = () => {
 
 
           {/* Company Profile Card - Added Request */}
-          <Card className="mb-8 border-primary/20 bg-primary/5">
+          <Card className="mb-8 border-white/10 bg-card/10 backdrop-blur-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Building2 className="w-5 h-5 text-primary" />
@@ -553,7 +564,7 @@ const CompanyDashboard = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -567,7 +578,7 @@ const CompanyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
@@ -583,7 +594,7 @@ const CompanyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
@@ -601,7 +612,7 @@ const CompanyDashboard = () => {
           </div>
 
           {/* Add Shareholder Section */}
-          <Card className="mb-8 border-border/50 shadow-large">
+          <Card className="mb-8 border-white/10 bg-card/10 backdrop-blur-md shadow-large">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -624,7 +635,7 @@ const CompanyDashboard = () => {
             </CardHeader>
 
             {showAddForm && (
-              <CardContent className="border-t border-border pt-6">
+              <CardContent className="border-t border-white/10 pt-6">
                 <form onSubmit={handleAddShareholder} className="space-y-4 animate-fade-in-up">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -635,7 +646,7 @@ const CompanyDashboard = () => {
                         value={formData.name}
                         onChange={handleInputChange}
                         placeholder="Full Name"
-                        className={errors.name ? "border-destructive" : ""}
+                        className={errors.name ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
                         required
                         disabled={isAddingShareholder}
                       />
@@ -653,7 +664,7 @@ const CompanyDashboard = () => {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="shareholder@email.com"
-                          className={`pl-11 ${errors.email ? "border-destructive" : ""}`}
+                          className={`pl-11 bg-black/20 border-white/10 ${errors.email ? "border-destructive" : ""}`}
                           required
                           disabled={isAddingShareholder}
                         />
@@ -671,7 +682,7 @@ const CompanyDashboard = () => {
                           value={formData.phone}
                           onChange={handleInputChange}
                           placeholder="+91 9876543210"
-                          className="pl-11"
+                          className="pl-11 bg-black/20 border-white/10"
                           disabled={isAddingShareholder}
                         />
                       </div>
@@ -687,7 +698,7 @@ const CompanyDashboard = () => {
                         onChange={handleInputChange}
                         placeholder="1000"
                         min="1"
-                        className={errors.sharesHeld ? "border-destructive" : ""}
+                        className={errors.sharesHeld ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
                         required
                         disabled={isAddingShareholder}
                       />
@@ -720,7 +731,7 @@ const CompanyDashboard = () => {
           </Card>
 
           {/* Shareholders List */}
-          <Card className="border-border/50">
+          <Card className="border-white/10 bg-card/10 backdrop-blur-md">
             <CardHeader>
               <CardTitle className="text-xl">Registered Shareholders</CardTitle>
               <CardDescription>

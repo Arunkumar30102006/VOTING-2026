@@ -56,7 +56,7 @@ const Contact = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative">
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20">
                 <div className="max-w-5xl mx-auto">
@@ -72,7 +72,7 @@ const Contact = () => {
                         <div className="space-y-8">
                             <div className="space-y-6">
                                 <h2 className="text-2xl font-bold">Get in Touch</h2>
-                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50">
+                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10">
                                     <Mail className="w-6 h-6 text-primary mt-1" />
                                     <div>
                                         <h3 className="font-semibold mb-1">Email Support</h3>
@@ -83,7 +83,7 @@ const Contact = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50">
+                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10">
                                     <Phone className="w-6 h-6 text-primary mt-1" />
                                     <div>
                                         <h3 className="font-semibold mb-1">Phone</h3>
@@ -92,7 +92,7 @@ const Contact = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50">
+                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10">
                                     <MapPin className="w-6 h-6 text-primary mt-1" />
                                     <div>
                                         <h3 className="font-semibold mb-1">Office Address</h3>
@@ -107,7 +107,7 @@ const Contact = () => {
                         </div>
 
                         {/* Contact Form Placeholder */}
-                        <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+                        <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-sm">
                             <div className="flex items-center gap-3 mb-6">
                                 <MessageSquare className="w-6 h-6 text-secondary" />
                                 <h2 className="text-2xl font-bold">Send a Message</h2>

@@ -91,21 +91,21 @@ const CompanyLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
-      
+
       <main className="pt-24 pb-16 min-h-[calc(100vh-200px)] flex items-center">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-                <Building2 className="w-4 h-4" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
+                <Building2 className="w-4 h-4 text-orange-400" />
                 <span>Company Portal</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
                 Company{" "}
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-orange-400 to-amber-200 bg-clip-text text-transparent">
                   Login
                 </span>
               </h1>
@@ -115,10 +115,10 @@ const CompanyLogin = () => {
             </div>
 
             {/* Login Card */}
-            <Card className="shadow-large border-border/50 animate-fade-in-up">
+            <Card className="shadow-large border-white/10 bg-card/10 backdrop-blur-md animate-fade-in-up">
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-xl flex items-center justify-center gap-2">
-                  <Shield className="w-5 h-5 text-accent" />
+                  <Shield className="w-5 h-5 text-orange-400" />
                   Secure Login
                 </CardTitle>
                 <CardDescription>
@@ -177,9 +177,9 @@ const CompanyLogin = () => {
                     )}
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    variant="hero" 
+                  <Button
+                    type="submit"
+                    variant="hero"
                     className="w-full gap-2"
                     disabled={isLoading}
                   >
@@ -206,11 +206,11 @@ const CompanyLogin = () => {
             </Card>
 
             {/* Security Notice */}
-            <div className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-              <Shield className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+            <div className="mt-6 flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10 animate-fade-in-up shadow-sm" style={{ animationDelay: "0.2s" }}>
+              <Shield className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-foreground">Enterprise-Grade Security</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium text-white">Enterprise-Grade Security</p>
+                <p className="text-xs text-white/70">
                   Your login is protected with end-to-end encryption and secure session management.
                 </p>
               </div>

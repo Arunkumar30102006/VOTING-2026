@@ -33,17 +33,17 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-20 md:py-32 relative overflow-hidden">
-      {/* Background */}
+    <section id="how-it-works" className="py-20 md:py-32 relative overflow-hidden bg-transparent">
+      {/* Background - Removed for DarkVeil visibility */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
+        <div className="absolute inset-0 bg-transparent" />
       </div>
 
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-sm font-medium mb-6">
-            <Vote className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
+            <Vote className="w-4 h-4 text-purple-400" />
             <span>Simple 4-Step Process</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
@@ -71,7 +71,7 @@ const HowItWorksSection = () => {
                 className="relative group"
               >
                 {/* Card */}
-                <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-large transition-all duration-500 relative z-10">
+                <div className="bg-card/10 backdrop-blur-md rounded-2xl p-6 shadow-soft border border-white/10 hover:shadow-large transition-all duration-500 relative z-10">
                   {/* Step Number */}
                   <div className={`absolute -top-4 left-6 w-8 h-8 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center text-primary-foreground font-bold text-sm shadow-medium`}>
                     {step.step}

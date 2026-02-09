@@ -6,61 +6,65 @@
 
 @layer base {
   :root {
-    /* Indian-inspired color palette */
-    --background: 220 20% 97%;
-    --foreground: 222 47% 11%;
+    /* Indian-inspired color palette - FORCED DARK THEME */
+    --background: 222 47% 2%;
+    /* Almost Black / Deepest Navy */
+    --foreground: 220 20% 97%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 222 47% 4%;
+    /* Very Dark Navy */
+    --card-foreground: 220 20% 97%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 222 47% 4%;
+    --popover-foreground: 220 20% 97%;
 
     /* Deep Navy Blue - Trust & Security */
-    --primary: 222 65% 25%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 30 95% 55%;
+    --primary-foreground: 222 47% 11%;
 
     /* Saffron Orange - Indian Heritage */
-    --secondary: 30 95% 55%;
+    --secondary: 222 65% 35%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Light backgrounds */
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 45%;
+    /* Darker muted for dark mode */
+    --muted: 222 30% 6%;
+    /* Darker than background */
+    --muted-foreground: 220 15% 65%;
 
     /* Emerald Green - Success */
-    --accent: 160 84% 39%;
+    --accent: 160 84% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 222 65% 25%;
+    --border: 222 30% 12%;
+    /* Darker borders */
+    --input: 222 30% 12%;
+    --ring: 30 95% 55%;
 
     --radius: 0.75rem;
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(222 65% 25%) 0%, hsl(222 65% 35%) 50%, hsl(30 95% 55%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(220 20% 97%) 0%, hsl(222 30% 95%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 20% 98%) 100%);
+    /* Custom gradients - Adjusted for Ultimate Dark Mode */
+    --gradient-primary: linear-gradient(135deg, hsl(222 65% 15%) 0%, hsl(222 65% 25%) 50%, hsl(30 95% 55%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(222 47% 2%) 0%, hsl(222 47% 5%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(222 47% 5%) 0%, hsl(222 47% 8%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(30 95% 55%) 0%, hsl(25 100% 50%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(160 84% 45%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(222 65% 25% / 0.08);
-    --shadow-md: 0 8px 24px -8px hsl(222 65% 25% / 0.12);
-    --shadow-lg: 0 16px 48px -12px hsl(222 65% 25% / 0.18);
-    --shadow-glow: 0 0 40px hsl(30 95% 55% / 0.3);
+    --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.5);
+    --shadow-md: 0 8px 24px -8px hsl(0 0% 0% / 0.6);
+    --shadow-lg: 0 16px 48px -12px hsl(0 0% 0% / 0.8);
+    --shadow-glow: 0 0 40px hsl(30 95% 55% / 0.15);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -114,7 +118,12 @@
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Plus Jakarta Sans', sans-serif;
     @apply font-bold tracking-tight;
   }
@@ -169,18 +178,24 @@
 
 /* Keyframe Animations */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
 }
 
 @keyframes pulse-slow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }
@@ -190,9 +205,11 @@
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -203,6 +220,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -214,6 +232,7 @@
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -225,6 +244,7 @@
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -236,6 +256,7 @@
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -246,15 +267,19 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes bounce-gentle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
@@ -285,12 +310,29 @@
 }
 
 /* Staggered animation delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-.delay-600 { animation-delay: 600ms; }
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+.delay-600 {
+  animation-delay: 600ms;
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

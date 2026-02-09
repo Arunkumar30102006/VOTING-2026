@@ -7,15 +7,17 @@ import CTASection from "@/components/home/CTASection";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main>
-        <HeroSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <CTASection />
-      </main>
-      <Footer />
+    <div className="min-h-screen relative selection:bg-primary/20">
+      <div className="relative z-10">
+        <Navbar />
+        <main>
+          <HeroSection />
+          <FeaturesSection />
+          <HowItWorksSection />
+          <CTASection />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };

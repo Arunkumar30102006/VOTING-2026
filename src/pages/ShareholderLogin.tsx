@@ -190,7 +190,7 @@ const ShareholderLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
 
       <main className="pt-24 pb-16">
@@ -198,8 +198,8 @@ const ShareholderLogin = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
             {/* Left Side - Info */}
             <div className="text-center lg:text-left order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-sm font-medium mb-6">
-                <Vote className="w-4 h-4" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
+                <Vote className="w-4 h-4 text-blue-400" />
                 <span>Shareholder Portal</span>
               </div>
 
@@ -222,7 +222,7 @@ const ShareholderLogin = () => {
                   { icon: Shield, title: "One-Time Credentials", desc: "Credentials are automatically invalidated after voting" },
                   { icon: Eye, title: "Audit Trail", desc: "Complete transparency with tamper-proof logs" },
                 ].map((feature) => (
-                  <div key={feature.title} className="flex items-start gap-4 p-4 rounded-xl bg-card border border-border/50 shadow-soft">
+                  <div key={feature.title} className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10 shadow-soft">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
                       <feature.icon className="w-5 h-5 text-primary-foreground" />
                     </div>
@@ -237,7 +237,7 @@ const ShareholderLogin = () => {
 
             {/* Right Side - Login Form */}
             <div className="order-1 lg:order-2">
-              <Card className="shadow-large border-border/50 relative overflow-hidden">
+              <Card className="shadow-large border-white/10 bg-card/10 backdrop-blur-md relative overflow-hidden">
                 {/* Decorative elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-secondary/10 to-transparent rounded-bl-full" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-primary/10 to-transparent rounded-tr-full" />

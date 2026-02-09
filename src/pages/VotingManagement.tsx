@@ -741,7 +741,7 @@ const VotingManagement = () => {
   const sessionStatus = getSessionStatus();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
 
       <main className="pt-24 pb-16">

@@ -260,11 +260,19 @@ const VotingDashboard = () => {
   const progress = (totalVoted / votingItems.length) * 100;
 
   if (isLoading) {
+<<<<<<< HEAD
     return <LoadingSpinner />;
+=======
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading voting dashboard...</p>
+      </div>
+    );
+>>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative">
       <Navbar />
 
       <main className="pt-24 pb-16">
@@ -325,7 +333,7 @@ const VotingDashboard = () => {
 
           {/* Info Cards */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -339,7 +347,7 @@ const VotingDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-secondary/20 flex items-center justify-center">
@@ -353,7 +361,7 @@ const VotingDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
@@ -367,7 +375,7 @@ const VotingDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">

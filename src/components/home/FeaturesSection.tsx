@@ -1,9 +1,9 @@
-import { 
-  Shield, 
-  Lock, 
-  Eye, 
-  Fingerprint, 
-  FileCheck, 
+import {
+  Shield,
+  Lock,
+  Eye,
+  Fingerprint,
+  FileCheck,
   Globe,
   Mail,
   Calendar
@@ -62,7 +62,7 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-20 md:py-32 bg-muted/30 relative overflow-hidden">
+    <section className="py-20 md:py-32 bg-transparent relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
@@ -72,8 +72,8 @@ const FeaturesSection = () => {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-            <Shield className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium mb-6 shadow-sm">
+            <Shield className="w-4 h-4 text-blue-400" />
             <span>Enterprise-Grade Security</span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
@@ -83,7 +83,7 @@ const FeaturesSection = () => {
             </span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            Our platform combines cutting-edge security technology with intuitive design 
+            Our platform combines cutting-edge security technology with intuitive design
             to deliver a seamless and trustworthy voting experience.
           </p>
         </div>
@@ -93,7 +93,7 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="group relative bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-large hover:-translate-y-2 transition-all duration-500"
+              className="group relative bg-card/10 backdrop-blur-md rounded-2xl p-6 shadow-soft border border-white/10 hover:shadow-large hover:-translate-y-2 transition-all duration-500"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Icon */}

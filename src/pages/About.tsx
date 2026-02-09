@@ -4,7 +4,7 @@ import { Shield, Users, Target, Award } from "lucide-react";
 
 const About = () => {
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen relative">
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20">
                 <div className="max-w-4xl mx-auto space-y-12">
@@ -20,7 +20,7 @@ const About = () => {
 
                     {/* Mission & Vision Grid */}
                     <div className="grid md:grid-cols-2 gap-8 mt-12">
-                        <div className="p-8 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-8 rounded-2xl bg-card/10 backdrop-blur-md border border-white/10 shadow-sm hover:shadow-md transition-shadow">
                             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
                                 <Target className="w-6 h-6 text-primary" />
                             </div>
@@ -30,7 +30,7 @@ const About = () => {
                             </p>
                         </div>
 
-                        <div className="p-8 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="p-8 rounded-2xl bg-card/10 backdrop-blur-md border border-white/10 shadow-sm hover:shadow-md transition-shadow">
                             <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-6">
                                 <Users className="w-6 h-6 text-secondary" />
                             </div>
@@ -45,7 +45,7 @@ const About = () => {
                     <div className="space-y-8 mt-16">
                         <h2 className="text-3xl font-bold text-center">Our Core Values</h2>
                         <div className="grid md:grid-cols-3 gap-6">
-                            <div className="text-center p-6">
+                            <div className="text-center p-6 bg-card/10 backdrop-blur-md border border-white/10 rounded-xl">
                                 <div className="mx-auto w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
                                     <Shield className="w-8 h-8 text-accent" />
                                 </div>
@@ -54,7 +54,7 @@ const About = () => {
                                     We employ state-of-the-art encryption and security protocols to ensure the integrity of every vote cast.
                                 </p>
                             </div>
-                            <div className="text-center p-6">
+                            <div className="text-center p-6 bg-card/10 backdrop-blur-md border border-white/10 rounded-xl">
                                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                                     <Target className="w-8 h-8 text-primary" />
                                 </div>
@@ -63,7 +63,7 @@ const About = () => {
                                     Our platform provides verifiable audit trails, ensuring complete transparency in the voting process.
                                 </p>
                             </div>
-                            <div className="text-center p-6">
+                            <div className="text-center p-6 bg-card/10 backdrop-blur-md border border-white/10 rounded-xl">
                                 <div className="mx-auto w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4">
                                     <Award className="w-8 h-8 text-secondary" />
                                 </div>

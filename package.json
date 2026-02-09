@@ -48,12 +48,18 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "gsap": "^3.14.2",
     "input-otp": "^1.4.2",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.462.0",
+<<<<<<< HEAD
     "motion": "^12.34.0",
+=======
+    "motion": "^12.33.0",
+>>>>>>> affc6614cfb23a5bdd591c12ce4ee80016b43205
     "next-themes": "^0.3.0",
+    "ogl": "^1.0.11",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",

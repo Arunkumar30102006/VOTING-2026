@@ -21,8 +21,8 @@ const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Animated Background */}
-      {/* Solid Background - Dark Blue */}
-      <div className="absolute inset-0 -z-10 bg-[#0d1b2a]" />
+      {/* Solid Background - Uses Global Theme */}
+      <div className="absolute inset-0 -z-10 bg-transparent" />
 
       <div className="container mx-auto px-4 py-12 md:py-20">
         <div className="flex flex-col items-center justify-center text-center">

@@ -7,15 +7,15 @@
 @layer base {
   :root {
     /* Indian-inspired color palette - FORCED DARK THEME */
-    --background: 222 47% 2%;
+    --background: 211 53% 11%;
     /* Almost Black / Deepest Navy */
     --foreground: 220 20% 97%;
 
-    --card: 222 47% 4%;
+    --card: 211 53% 13%;
     /* Very Dark Navy */
     --card-foreground: 220 20% 97%;
 
-    --popover: 222 47% 4%;
+    --popover: 211 53% 13%;
     --popover-foreground: 220 20% 97%;
 
     /* Deep Navy Blue - Trust & Security */
@@ -69,13 +69,13 @@
   }
 
   .dark {
-    --background: 222 47% 8%;
+    --background: 211 53% 11%;
     --foreground: 220 20% 97%;
 
-    --card: 222 47% 11%;
+    --card: 211 53% 13%;
     --card-foreground: 220 20% 97%;
 
-    --popover: 222 47% 11%;
+    --popover: 211 53% 13%;
     --popover-foreground: 220 20% 97%;
 
     --primary: 30 95% 55%;

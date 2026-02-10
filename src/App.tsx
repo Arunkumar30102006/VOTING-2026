@@ -21,7 +21,7 @@ import SebiCompliance from "./pages/legal/SebiCompliance";
 import DataProtection from "./pages/legal/DataProtection";
 import WebsiteFeedback from "./components/feedback/WebsiteFeedback";
 import { VoteAssistant } from "./components/ai/VoteAssistant";
-import DarkVeil from "@/components/ui/DarkVeil";
+
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Security from "./pages/Security";
@@ -37,9 +37,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <div className="fixed inset-0 z-[-1] pointer-events-none">
-              <DarkVeil />
-            </div>
+
             <ScrollToTop />
             <WebsiteFeedback />
             <VoteAssistant />

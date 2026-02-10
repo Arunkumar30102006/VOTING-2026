@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-// import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Vote, Shield, Users, Building2, LogOut, ShieldCheck, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PillNav, { PillNavItem } from "@/components/ui/PillNav";
@@ -106,9 +106,9 @@ const Navbar = () => {
               </div>
             </Link>
 
-            {/* <div className="hidden md:block w-px h-8 bg-white/10"></div> */}
+            <div className="hidden md:block w-px h-8 bg-white/10"></div>
 
-            {/* <ModeToggle /> */}
+            <ModeToggle />
           </div>
 
           {/* Center: Link Pills - Grid Centered */}

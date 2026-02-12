@@ -137,7 +137,7 @@ const CompanyRegister = () => {
         // Send OTP
         setIsLoading(true);
         const res = await fetch(
-          "https://tpfvvuuumfuvbqkackwk.supabase.co/functions/v1/send-email-otp",
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email-otp`,
           {
             method: "POST",
             headers: {
@@ -191,7 +191,7 @@ const CompanyRegister = () => {
       // Step 3 already implies previous validation, but let's verify OTP
       if (step === 3) {
         const res = await fetch(
-          "https://tpfvvuuumfuvbqkackwk.supabase.co/functions/v1/verify-email-otp",
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-email-otp`,
           {
             method: "POST",
             headers: {

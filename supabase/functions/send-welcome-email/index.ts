@@ -15,7 +15,7 @@ serve(async (req) => {
 
   try {
     const { email, companyName, cin, adminName, address, phone } = await req.json();
-    const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://www.shareholdervoting.in";
+    const FRONTEND_URL = "https://www.shareholdervoting.in";
 
     if (!email || !companyName) {
       throw new Error("Email and Company Name are required");

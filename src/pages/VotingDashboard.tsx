@@ -15,9 +15,11 @@ import {
   AlertCircle,
   LogOut,
   ChevronRight,
-  Menu
+  Menu,
+  Video
 } from "lucide-react";
 import { toast } from "sonner";
+import { SEO } from "@/components/layout/SEO";
 import { generateVoteHash } from "@/lib/blockchain";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +28,6 @@ import VotingAnalytics from "@/components/dashboard/VotingAnalytics";
 import VotingCardSkeleton from "@/components/voting/VotingCardSkeleton";
 import { votingApi } from "@/services/api/voting";
 import { VotingItem, VoteType, VoteRecord } from "@/types/voting";
-import { SEO } from "@/components/layout/SEO";
 
 const VotingDashboard = () => {
   const navigate = useNavigate();
@@ -155,7 +156,7 @@ const VotingDashboard = () => {
   }, [isSessionExpired, votingItems, shareholderId, queryClient]);
 
 
-  import { SEO } from "@/components/layout/SEO";
+
 
   if (!shareholderId) {
     navigate("/shareholder-login");

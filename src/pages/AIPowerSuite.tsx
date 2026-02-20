@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentSummarizer } from "@/components/ai/DocumentSummarizer";
 import { AIAnalysisDemo } from "@/components/company/AIAnalysisDemo";
 import { Sparkles, FileText, BrainCircuit, ArrowLeft } from "lucide-react";
+import { LiveSentimentMonitor } from "@/components/ai/LiveSentimentMonitor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -151,16 +152,8 @@ const AIPowerSuite = () => {
                                                 <AIAnalysisDemo />
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-center p-6 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-800/20 border-dashed">
-                                            <div className="text-center space-y-4 max-w-xs">
-                                                <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mx-auto">
-                                                    <BrainCircuit className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-                                                </div>
-                                                <h4 className="font-semibold text-lg text-purple-900 dark:text-purple-100">Live Insights</h4>
-                                                <p className="text-sm text-purple-700 dark:text-purple-300">
-                                                    Connect this to your real feedback channels to get automatic weekly sentiment reports.
-                                                </p>
-                                            </div>
+                                        <div className="space-y-4">
+                                            <LiveSentimentMonitor />
                                         </div>
                                     </div>
                                 </TabsContent>
@@ -168,10 +161,10 @@ const AIPowerSuite = () => {
                         </CardContent>
                     </Card>
                 </div>
-            </main>
+            </main >
 
             <Footer />
-        </div>
+        </div >
     );
 };
 

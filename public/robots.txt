@@ -1,8 +1,3 @@
 User-agent: *
 Allow: /
-Disallow: /company-dashboard
-Disallow: /voting-dashboard
-Disallow: /voting-management
-Disallow: /ai-power-suite
-
 Sitemap: https://www.shareholdervoting.in/sitemap.xml

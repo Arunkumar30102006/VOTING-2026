@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { sendEmail } from "@/lib/email";
+import { votingApi } from "@/services/api/voting";
 import { DashboardFeedback } from "@/components/company/DashboardFeedback";
 import { DocumentSummarizer } from "@/components/ai/DocumentSummarizer";
 import { SentimentWidget } from "@/components/ai/SentimentWidget";
@@ -45,6 +46,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea"; // Ensure we have this or import it
 import { Sparkles, FileText, BrainCircuit } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { AdminVotingResults } from "@/components/company/AdminVotingResults";
 
 const shareholderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -81,6 +83,8 @@ const CompanyDashboard = () => {
   const [isDeletingCompany, setIsDeletingCompany] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
   const [shareholders, setShareholders] = useState<Shareholder[]>([]);
+  const [activeTab, setActiveTab] = useState("shareholders");
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -131,6 +135,17 @@ const CompanyDashboard = () => {
 
     setCompany(companyData);
     await loadShareholders(companyData.id);
+
+    // Fetch Active Session for Results
+    try {
+      const activeSession = await votingApi.getActiveSession(companyData.id);
+      if (activeSession) {
+        setSessionId(activeSession.id);
+      }
+    } catch (e) {
+      console.error("Failed to fetch active session", e);
+    }
+
     setIsLoading(false);
   };
 
@@ -551,257 +566,290 @@ const CompanyDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
-                    <p className="text-sm text-muted-foreground">Total Shareholders</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Stats Cards - Always Visible or maybe specific to tab? Let's keep them visible for now or just standard dashboard */}
 
-            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-foreground">
-                      {shareholders.filter(s => s.is_credential_used).length}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Credentials Used</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs defaultValue="shareholders" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+              <TabsTrigger value="shareholders" className="gap-2"><Users className="w-4 h-4" /> Shareholders</TabsTrigger>
+              <TabsTrigger value="results" className="gap-2"><FileText className="w-4 h-4" /> Results & Reports</TabsTrigger>
+            </TabsList>
 
-            <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
-                    <Hash className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-foreground">
-                      {shareholders.reduce((acc, s) => acc + s.shares_held, 0).toLocaleString()}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Total Shares</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            <TabsContent value="shareholders" className="space-y-6 animate-fade-in-up">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Users className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-foreground">{shareholders.length}</p>
+                        <p className="text-sm text-muted-foreground">Total Shareholders</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          {/* Add Shareholder Section */}
-          <Card className="mb-8 border-white/10 bg-card/10 backdrop-blur-md shadow-large">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    Shareholder Management
-                  </CardTitle>
-                  <CardDescription>
-                    Add shareholders and send them secure login credentials via email
-                  </CardDescription>
-                </div>
-                <Button
-                  variant={showAddForm ? "ghost" : "saffron"}
-                  onClick={() => setShowAddForm(!showAddForm)}
-                  className="gap-2"
-                >
-                  {showAddForm ? "Cancel" : <><Plus className="w-4 h-4" /> Add Shareholder</>}
-                </Button>
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-foreground">
+                          {shareholders.filter(s => s.is_credential_used).length}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Credentials Used</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
+                        <Hash className="w-6 h-6 text-secondary" />
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-foreground">
+                          {shareholders.reduce((acc, s) => acc + s.shares_held, 0).toLocaleString()}
+                        </p>
+                        <p className="text-sm text-muted-foreground">Total Shares</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardHeader>
 
-            {showAddForm && (
-              <CardContent className="border-t border-white/10 pt-6">
-                <form onSubmit={handleAddShareholder} className="space-y-4 animate-fade-in-up">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Shareholder Name *</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Full Name"
-                        className={errors.name ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
-                        required
-                        disabled={isAddingShareholder}
-                      />
-                      {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address *</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="shareholder@email.com"
-                          className={`pl-11 bg-black/20 border-white/10 ${errors.email ? "border-destructive" : ""}`}
-                          required
-                          disabled={isAddingShareholder}
-                        />
-                      </div>
-                      {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          placeholder="+91 9876543210"
-                          className="pl-11 bg-black/20 border-white/10"
-                          disabled={isAddingShareholder}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="sharesHeld">Number of Shares *</Label>
-                      <Input
-                        id="sharesHeld"
-                        name="sharesHeld"
-                        type="number"
-                        value={formData.sharesHeld}
-                        onChange={handleInputChange}
-                        placeholder="1000"
-                        min="1"
-                        className={errors.sharesHeld ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
-                        required
-                        disabled={isAddingShareholder}
-                      />
-                      {errors.sharesHeld && <p className="text-sm text-destructive">{errors.sharesHeld}</p>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
-                    <Shield className="w-5 h-5 text-accent mt-0.5" />
+              {/* Add Shareholder Section */}
+              <Card className="mb-8 border-white/10 bg-card/10 backdrop-blur-md shadow-large">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-foreground">Secure Credential Generation</p>
-                      <p className="text-xs text-muted-foreground">
-                        Auto-generated unique User ID and password will be sent to the shareholder's email.
-                        Credentials are hashed and stored securely.
-                      </p>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        Shareholder Management
+                      </CardTitle>
+                      <CardDescription>
+                        Add shareholders and send them secure login credentials via email
+                      </CardDescription>
                     </div>
+                    <Button
+                      variant={showAddForm ? "ghost" : "saffron"}
+                      onClick={() => setShowAddForm(!showAddForm)}
+                      className="gap-2"
+                    >
+                      {showAddForm ? "Cancel" : <><Plus className="w-4 h-4" /> Add Shareholder</>}
+                    </Button>
                   </div>
+                </CardHeader>
 
-                  <Button type="submit" variant="hero" className="gap-2" disabled={isAddingShareholder}>
-                    {isAddingShareholder ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                    Add & Send Credentials
-                  </Button>
-                </form>
-              </CardContent>
-            )}
-          </Card>
+                {showAddForm && (
+                  <CardContent className="border-t border-white/10 pt-6">
+                    <form onSubmit={handleAddShareholder} className="space-y-4 animate-fade-in-up">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Shareholder Name *</Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            placeholder="Full Name"
+                            className={errors.name ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
+                            required
+                            disabled={isAddingShareholder}
+                          />
+                          {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                        </div>
 
-          {/* Shareholders List */}
-          <Card className="border-white/10 bg-card/10 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle className="text-xl">Registered Shareholders</CardTitle>
-              <CardDescription>
-                View and manage all shareholders with their credential status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {shareholders.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-                  <p className="text-muted-foreground">No shareholders added yet</p>
-                  <p className="text-sm text-muted-foreground/80">Click "Add Shareholder" to get started</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Email</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Shares</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Login ID</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
-                        <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {shareholders.map((shareholder) => (
-                        <tr key={shareholder.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                          <td className="py-4 px-4 font-medium text-foreground">{shareholder.shareholder_name}</td>
-                          <td className="py-4 px-4 text-muted-foreground">{shareholder.email}</td>
-                          <td className="py-4 px-4 text-muted-foreground">{shareholder.shares_held.toLocaleString()}</td>
-                          <td className="py-4 px-4">
-                            <code className="px-2 py-1 rounded bg-muted text-sm">{shareholder.login_id}</code>
-                          </td>
-                          <td className="py-4 px-4">
-                            {shareholder.is_credential_used ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
-                                <CheckCircle2 className="w-3 h-3" />
-                                Active
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 text-xs font-medium">
-                                Pending
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleResendCredentials(shareholder)}
-                                disabled={isSendingCredentials === shareholder.id}
-                                className="gap-1"
-                              >
-                                {isSendingCredentials === shareholder.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email Address *</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              id="email"
+                              name="email"
+                              type="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              placeholder="shareholder@email.com"
+                              className={`pl-11 bg-black/20 border-white/10 ${errors.email ? "border-destructive" : ""}`}
+                              required
+                              disabled={isAddingShareholder}
+                            />
+                          </div>
+                          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone Number</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                              id="phone"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              placeholder="+91 9876543210"
+                              className="pl-11 bg-black/20 border-white/10"
+                              disabled={isAddingShareholder}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="sharesHeld">Number of Shares *</Label>
+                          <Input
+                            id="sharesHeld"
+                            name="sharesHeld"
+                            type="number"
+                            value={formData.sharesHeld}
+                            onChange={handleInputChange}
+                            placeholder="1000"
+                            min="1"
+                            className={errors.sharesHeld ? "border-destructive bg-black/20 border-white/10" : "bg-black/20 border-white/10"}
+                            required
+                            disabled={isAddingShareholder}
+                          />
+                          {errors.sharesHeld && <p className="text-sm text-destructive">{errors.sharesHeld}</p>}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
+                        <Shield className="w-5 h-5 text-accent mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Secure Credential Generation</p>
+                          <p className="text-xs text-muted-foreground">
+                            Auto-generated unique User ID and password will be sent to the shareholder's email.
+                            Credentials are hashed and stored securely.
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button type="submit" variant="hero" className="gap-2" disabled={isAddingShareholder}>
+                        {isAddingShareholder ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        Add & Send Credentials
+                      </Button>
+                    </form>
+                  </CardContent>
+                )}
+              </Card>
+
+              {/* Shareholders List */}
+              <Card className="border-white/10 bg-card/10 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-xl">Registered Shareholders</CardTitle>
+                  <CardDescription>
+                    View and manage all shareholders with their credential status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {shareholders.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                      <p className="text-muted-foreground">No shareholders added yet</p>
+                      <p className="text-sm text-muted-foreground/80">Click "Add Shareholder" to get started</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Email</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Shares</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Login ID</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                            <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {shareholders.map((shareholder) => (
+                            <tr key={shareholder.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                              <td className="py-4 px-4 font-medium text-foreground">{shareholder.shareholder_name}</td>
+                              <td className="py-4 px-4 text-muted-foreground">{shareholder.email}</td>
+                              <td className="py-4 px-4 text-muted-foreground">{shareholder.shares_held.toLocaleString()}</td>
+                              <td className="py-4 px-4">
+                                <code className="px-2 py-1 rounded bg-muted text-sm">{shareholder.login_id}</code>
+                              </td>
+                              <td className="py-4 px-4">
+                                {shareholder.is_credential_used ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    Active
+                                  </span>
                                 ) : (
-                                  <RefreshCw className="w-4 h-4" />
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-600 text-xs font-medium">
+                                    Pending
+                                  </span>
                                 )}
-                                Resend
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteShareholder(shareholder.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                              </td>
+                              <td className="py-4 px-4">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleResendCredentials(shareholder)}
+                                    disabled={isSendingCredentials === shareholder.id}
+                                    className="gap-1"
+                                  >
+                                    {isSendingCredentials === shareholder.id ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <RefreshCw className="w-4 h-4" />
+                                    )}
+                                    Resend
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteShareholder(shareholder.id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="results">
+              {/* Note: In a real app we'd need to pass the selected Session ID. 
+                    For MVP, we will fetch the Active session inside the component or just pass a known one if we had state for it.
+                    Ideally, we should likely fetch the active session in CompanyDashboard parent state.
+                    We did fetch 'companyData' but not 'session'. Let's assume there's one active session or we'll fetch it in the component for now.
+                    Wait, let's properly fetch the session in the Dashboard to pass it down.
+                    For now, passing the company ID and letting the child component utilize it or fetching active session there is better separation?
+                    Actually, AdminVotingResults took `sessionId`. We don't have it in state here yet.
+                    Let's quickly fetch active session ID here or modify AdminVotingResults to take CompanyID and find active session.
+                    AdminVotingResults takes `sessionId`.
+                    Let's update AdminVotingResults to optionally take companyId and find active session, OR fetch it here.
+                    Fetching it here is cleaner.
+                */}
+              {/* Placeholder for now until we add session fetching logic */}
+              <div className="p-8 text-center border border-dashed border-white/10 rounded-xl">
+                <p className="text-muted-foreground mb-4">Select an active session to view results.</p>
+                {/* We need to implement session selection or auto-select active */}
+                <AdminVotingResults sessionId="" companyName={company?.company_name || ""} />
+                {/* The component will just return empty/loading if no session ID. We need to fix this. */}
+              </div>
+            </TabsContent>
+          </Tabs>
 
           {/* Feedback Section */}
           <div className="mb-8">

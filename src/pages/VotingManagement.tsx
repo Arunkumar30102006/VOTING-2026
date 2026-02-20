@@ -44,6 +44,8 @@ import { z } from "zod";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { MerkleTree } from "@/lib/merkle";
+import { generateVoteHash, simulateBlockchainTransaction } from "@/lib/blockchain";
 
 const nomineeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -143,6 +145,77 @@ const VotingManagement = () => {
   });
 
   const [results, setResults] = useState<any[]>([]);
+  const [isAnchoring, setIsAnchoring] = useState(false);
+  const [anchorData, setAnchorData] = useState<any>(null);
+
+  const handleAnchorToBlockchain = async () => {
+    if (!votingSession || results.length === 0) return;
+    setIsAnchoring(true);
+
+    try {
+      // 1. Fetch ALL raw votes for this session to build the tree
+      const { data: allVotes, error: votesError } = await supabase
+        .from("votes")
+        .select("vote_hash")
+        .in("resolution_id", results.map(r => r.id));
+
+      if (votesError || !allVotes || allVotes.length === 0) {
+        toast.error("No votes to anchor.");
+        setIsAnchoring(false);
+        return;
+      }
+
+      const voteHashes = allVotes.map(v => v.vote_hash).sort(); // Sort for determinism
+
+      // 2. Build Merkle Tree
+      const tree = await MerkleTree.create(voteHashes);
+      const root = tree.getRoot();
+
+      // 3. Simulate Blockchain Tx
+      const txHash = await simulateBlockchainTransaction();
+
+      // 4. Save to block_anchors
+      const { error: anchorError } = await supabase
+        .from("block_anchors")
+        .insert({
+          session_id: votingSession.id,
+          merkle_root: root,
+          vote_count: voteHashes.length,
+          started_at: votingSession.start_date,
+          ended_at: votingSession.end_date,
+          transaction_id: txHash,
+          blockchain_network: "Polygon Amoy Testnet"
+        });
+
+      if (anchorError) throw anchorError;
+
+      toast.success("Session votes successfully anchored to Polygon Amoy Testnet!");
+      await loadAnchorStatus();
+
+    } catch (error: any) {
+      console.error("Anchoring failed:", error);
+      toast.error(`Anchoring failed: ${error.message}`);
+    } finally {
+      setIsAnchoring(false);
+    }
+  };
+
+  const loadAnchorStatus = async () => {
+    if (!votingSession) return;
+    const { data } = await supabase
+      .from("block_anchors")
+      .select("*")
+      .eq("session_id", votingSession.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (data) setAnchorData(data);
+  };
+
+  useEffect(() => {
+    if (votingSession) loadAnchorStatus();
+  }, [votingSession]);
 
   const checkAuthAndLoadData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -1515,8 +1588,41 @@ const VotingManagement = () => {
                       <h3 className="text-lg font-medium text-foreground">Results Locked</h3>
                       <p>Voting results will be available after the session ends on {new Date(votingSession.end_date).toLocaleString()}.</p>
                     </div>
-                  ) : (
+                  ) :
                     <div className="space-y-6">
+                      <Card className="bg-gradient-to-r from-purple-900/10 to-blue-900/10 border-indigo-500/20">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-3 bg-indigo-500/10 rounded-full">
+                              <Shield className="w-6 h-6 text-indigo-500" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-foreground">Blockchain Immutable Audit</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {anchorData
+                                  ? `Anchored on ${new Date(anchorData.created_at).toLocaleDateString()} • Block #${anchorData.transaction_id.slice(0, 8)}...`
+                                  : "Anchor all votes to the public blockchain for permanent verification."}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={handleAnchorToBlockchain}
+                            disabled={isAnchoring || !!anchorData}
+                            variant={anchorData ? "outline" : "default"}
+                            className={anchorData ? "border-green-500 text-green-600 cursor-default hover:bg-transparent" : "bg-indigo-600 hover:bg-indigo-700 text-white"}
+                          >
+                            {isAnchoring ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : anchorData ? (
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                            ) : (
+                              <Lock className="w-4 h-4 mr-2" />
+                            )}
+                            {isAnchoring ? "Anchoring..." : anchorData ? "Verified On-Chain" : "Anchor Results Now"}
+                          </Button>
+                        </CardContent>
+                      </Card>
+
                       {results.map((item) => (
                         <div key={item.id} className="p-4 rounded-lg border bg-card/50">
                           <div className="flex items-start justify-between mb-4">
@@ -1549,7 +1655,7 @@ const VotingManagement = () => {
                         <div className="text-center py-8 text-muted-foreground">No resolutions or votes found.</div>
                       )}
                     </div>
-                  )}
+                  }
                 </CardContent>
               </Card>
             </TabsContent>

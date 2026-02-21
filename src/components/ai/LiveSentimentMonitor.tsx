@@ -100,8 +100,8 @@ export const LiveSentimentMonitor = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
             {/* Stats Overview */}
-            <div className="lg:col-span-1 space-y-4">
-                <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+            <div className="lg:col-span-1 h-full">
+                <Card className="h-full bg-card/50 backdrop-blur-sm border-primary/10 flex flex-col">
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                             <TrendingUp className="w-5 h-5 text-primary" />
@@ -109,41 +109,43 @@ export const LiveSentimentMonitor = () => {
                         </CardTitle>
                         <CardDescription>Real-time analysis of last 50 comments</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Positive</span>
-                                <span className="font-medium">{stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0}%</span>
+                    <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Positive</span>
+                                    <span className="font-medium text-emerald-500">{stats.total > 0 ? Math.round((stats.positive / stats.total) * 100) : 0}%</span>
+                                </div>
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${stats.total > 0 ? (stats.positive / stats.total) * 100 : 0}%` }} />
+                                </div>
                             </div>
-                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${stats.total > 0 ? (stats.positive / stats.total) * 100 : 0}%` }} />
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Neutral</span>
+                                    <span className="font-medium text-yellow-500">{stats.total > 0 ? Math.round((stats.neutral / stats.total) * 100) : 0}%</span>
+                                </div>
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-yellow-500 transition-all duration-500" style={{ width: `${stats.total > 0 ? (stats.neutral / stats.total) * 100 : 0}%` }} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Negative</span>
+                                    <span className="font-medium text-red-500">{stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0}%</span>
+                                </div>
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${stats.total > 0 ? (stats.negative / stats.total) * 100 : 0}%` }} />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Neutral</span>
-                                <span className="font-medium">{stats.total > 0 ? Math.round((stats.neutral / stats.total) * 100) : 0}%</span>
-                            </div>
-                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-yellow-500 transition-all duration-500" style={{ width: `${stats.total > 0 ? (stats.neutral / stats.total) * 100 : 0}%` }} />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Negative</span>
-                                <span className="font-medium">{stats.total > 0 ? Math.round((stats.negative / stats.total) * 100) : 0}%</span>
-                            </div>
-                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${stats.total > 0 ? (stats.negative / stats.total) * 100 : 0}%` }} />
-                            </div>
-                        </div>
-
-                        <div className="pt-4 flex items-center justify-center">
+                        <div className="pt-6 border-t border-primary/5">
                             <div className="text-center">
-                                <span className="text-3xl font-bold block">{stats.total}</span>
-                                <span className="text-xs text-muted-foreground uppercase tracking-wider">Total Comments</span>
+                                <span className="text-4xl font-bold block text-foreground">{stats.total}</span>
+                                <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Total Comments</span>
                             </div>
                         </div>
                     </CardContent>
@@ -151,7 +153,7 @@ export const LiveSentimentMonitor = () => {
             </div>
 
             {/* Live Feed */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 h-full">
                 <Card className="h-full bg-card/50 backdrop-blur-sm border-primary/10 flex flex-col">
                     <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">

@@ -845,7 +845,7 @@ const CompanyDashboard = () => {
               <div className="p-8 text-center border border-dashed border-white/10 rounded-xl">
                 <p className="text-muted-foreground mb-4">Select an active session to view results.</p>
                 {/* We need to implement session selection or auto-select active */}
-                <AdminVotingResults sessionId="" companyName={company?.company_name || ""} />
+                <AdminVotingResults sessionId={sessionId || ""} companyName={company?.company_name || ""} />
                 {/* The component will just return empty/loading if no session ID. We need to fix this. */}
               </div>
             </TabsContent>

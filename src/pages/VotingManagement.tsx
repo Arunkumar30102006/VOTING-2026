@@ -217,6 +217,31 @@ const VotingManagement = () => {
     if (votingSession) loadAnchorStatus();
   }, [votingSession]);
 
+  useEffect(() => {
+    if (!votingSession || !company) return;
+
+    const now = new Date();
+    const start = new Date(votingSession.start_date);
+    const end = new Date(votingSession.end_date);
+
+    let nextEvent: Date | null = null;
+
+    if (now < start) {
+      nextEvent = start;
+    } else if (now < end) {
+      nextEvent = end;
+    }
+
+    if (nextEvent) {
+      const delay = nextEvent.getTime() - now.getTime() + 1000; // Add 1s buffer
+      console.log(`Setting timer for next status sync in ${Math.round(delay / 1000)} seconds...`);
+      const timer = setTimeout(() => {
+        loadVotingSession(company.id);
+      }, delay);
+      return () => clearTimeout(timer);
+    }
+  }, [votingSession, company]);
+
   const checkAuthAndLoadData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
 
@@ -277,6 +302,49 @@ const VotingManagement = () => {
 
     if (data) {
       setVotingSession(data);
+
+      // --- AUTO-SYNC LOGIC ---
+      try {
+        const now = new Date();
+        const start = new Date(data.start_date);
+        const end = new Date(data.end_date);
+        let needsUpdate = false;
+        const updates: any = {};
+
+        // 1. Auto-Start if time has come and not already started or manually stopped
+        if (now >= start && now <= end && !data.is_active && !data.auto_start_done && !data.auto_end_done) {
+          console.log("Auto-activating session based on start_date");
+          updates.is_active = true;
+          updates.auto_start_done = true;
+          needsUpdate = true;
+        }
+
+        // 2. Auto-End if time has passed and not already ended
+        if (now > end && data.is_active && !data.auto_end_done) {
+          console.log("Auto-pausing session based on end_date");
+          updates.is_active = false;
+          updates.auto_end_done = true;
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          await supabase
+            .from("voting_sessions")
+            .update(updates)
+            .eq("id", data.id);
+
+          // Reload with updated state
+          const { data: updatedData } = await supabase
+            .from("voting_sessions")
+            .select("*")
+            .eq("id", data.id)
+            .single();
+          if (updatedData) setVotingSession(updatedData);
+        }
+      } catch (syncErr) {
+        console.error("Critical error in session auto-sync logic:", syncErr);
+      }
+      // -----------------------
 
       // Helper to format Date to "YYYY-MM-DDThh:mm" using local time
       const toLocalISOString = (dateStr: string) => {
@@ -355,6 +423,21 @@ const VotingManagement = () => {
     }
   }, [votingSession]);
 
+  useEffect(() => {
+    // Automated Anchoring Logic
+    // Trigger when: session ended automatically, results are loaded, not already anchored, and not currently anchoring
+    if (
+      votingSession &&
+      (votingSession as any).auto_end_done &&
+      results.length > 0 &&
+      !anchorData &&
+      !isAnchoring
+    ) {
+      console.log("Triggering automated blockchain anchoring after session end...");
+      handleAnchorToBlockchain();
+    }
+  }, [votingSession, results, anchorData, isAnchoring]);
+
   const loadShareholders = async (companyId: string) => {
     const { data, error } = await supabase
       .from("shareholders")
@@ -415,6 +498,8 @@ const VotingManagement = () => {
         meeting_start_date: validatedData.meetingStartDate ? new Date(validatedData.meetingStartDate).toISOString() : null,
         meeting_end_date: validatedData.meetingEndDate ? new Date(validatedData.meetingEndDate).toISOString() : null,
         voting_instructions: validatedData.votingInstructions || null,
+        auto_start_done: false,
+        auto_end_done: false,
       } as any;
 
       if (votingSession) {
@@ -615,9 +700,17 @@ const VotingManagement = () => {
   const handleToggleSessionActive = async () => {
     if (!votingSession) return;
 
+    const isActivating = !votingSession.is_active;
+    const updates: any = { is_active: isActivating };
+
+    // If manually activating, mark auto-start as "done" so it doesn't fight
+    if (isActivating) updates.auto_start_done = true;
+    // If manually pausing, mark auto-end as "done" so it doesnt auto-start again in this window
+    else updates.auto_end_done = true;
+
     const { error } = await supabase
       .from("voting_sessions")
-      .update({ is_active: !votingSession.is_active })
+      .update(updates)
       .eq("id", votingSession.id);
 
     if (error) {
@@ -705,7 +798,10 @@ const VotingManagement = () => {
         .update({ is_meeting_emails_sent: true })
         .eq("id", votingSession.id);
 
-      if (updateError) console.error("Failed to update session status:", updateError);
+      if (updateError) {
+        console.error("Failed to update session status:", updateError);
+        toast.error("Emails sent, but failed to update status in database.");
+      }
 
       // Update local state
       setVotingSession(prev => prev ? { ...prev, is_meeting_emails_sent: true } : null);
@@ -794,9 +890,15 @@ const VotingManagement = () => {
     const start = new Date(votingSession.start_date);
     const end = new Date(votingSession.end_date);
 
-    if (!votingSession.is_active) return { status: "Paused", color: "bg-yellow-100 text-yellow-800" };
+    if (!votingSession.is_active) {
+      if ((votingSession as any).auto_end_done) return { status: "Paused (Manual/Auto-Ended)", color: "bg-yellow-100 text-yellow-800" };
+      return { status: "Paused", color: "bg-yellow-100 text-yellow-800" };
+    }
+
     if (now < start) return { status: "Scheduled", color: "bg-blue-100 text-blue-800" };
     if (now > end) return { status: "Ended", color: "bg-muted text-muted-foreground" };
+
+    if ((votingSession as any).auto_start_done) return { status: "Active (Auto-Started)", color: "bg-green-100 text-green-800" };
     return { status: "Active", color: "bg-green-100 text-green-800" };
   };
 
@@ -877,8 +979,8 @@ const VotingManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="border-border/50">
                   <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                         <Users className="w-6 h-6 text-primary" />
                       </div>
                       <div>
@@ -891,8 +993,8 @@ const VotingManagement = () => {
 
                 <Card className="border-border/50">
                   <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
                         <UserPlus className="w-6 h-6 text-secondary" />
                       </div>
                       <div>
@@ -905,8 +1007,8 @@ const VotingManagement = () => {
 
                 <Card className="border-border/50">
                   <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
                         <Mail className="w-6 h-6 text-accent" />
                       </div>
                       <div>
@@ -921,12 +1023,14 @@ const VotingManagement = () => {
 
                 <Card className="border-border/50">
                   <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                         <Vote className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-3xl font-bold text-foreground">{sessionStatus.status}</p>
+                        <p className={`${sessionStatus.status.length > 20 ? 'text-lg' : sessionStatus.status.length > 12 ? 'text-xl' : 'text-3xl'} font-bold text-foreground leading-tight`}>
+                          {sessionStatus.status}
+                        </p>
                         <p className="text-sm text-muted-foreground">Session Status</p>
                       </div>
                     </div>

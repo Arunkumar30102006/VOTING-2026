@@ -144,15 +144,17 @@ const AIPowerSuite = () => {
                                 </TabsContent>
 
                                 <TabsContent value="sentiment" className="animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div className="space-y-4">
-                                            <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-                                                <h3 className="font-medium mb-2 text-lg text-gray-700 dark:text-gray-300">Shareholder Feedback Analysis</h3>
-                                                <p className="text-sm text-gray-500 mb-6">Paste feedback text below to detect sentiment, generate summaries, and extract key themes.</p>
-                                                <AIAnalysisDemo />
+                                    <div className="grid lg:grid-cols-12 gap-6">
+                                        <div className="lg:col-span-4 h-full">
+                                            <div className="p-6 rounded-lg bg-card/50 backdrop-blur-sm border-primary/10 shadow-sm h-full flex flex-col">
+                                                <h3 className="font-semibold mb-2 text-lg text-foreground">Shareholder Feedback Analysis</h3>
+                                                <p className="text-sm text-muted-foreground mb-6 italic">Paste feedback text below to detect sentiment, generate summaries, and extract key themes.</p>
+                                                <div className="flex-1">
+                                                    <AIAnalysisDemo />
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="space-y-4">
+                                        <div className="lg:col-span-8">
                                             <LiveSentimentMonitor />
                                         </div>
                                     </div>

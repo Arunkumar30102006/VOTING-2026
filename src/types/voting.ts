@@ -37,6 +37,8 @@ export interface VotingSession {
     meeting_end_date?: string;
     voting_instructions?: string;
     is_meeting_emails_sent?: boolean;
+    auto_start_done?: boolean;
+    auto_end_done?: boolean;
 }
 
 export interface Resolution {

@@ -18,7 +18,8 @@ export const votingApi = {
             .from("voting_sessions")
             .select("*")
             .eq("company_id", companyId)
-            .eq("is_active", true)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
 
         if (error) throw error;
@@ -79,5 +80,21 @@ export const votingApi = {
 
         if (error) throw error;
         return data as unknown as Shareholder[];
+    },
+
+    submitFeedback: async (feedback: {
+        session_id: string;
+        shareholder_id?: string;
+        content: string;
+        sentiment_label: 'Positive' | 'Neutral' | 'Negative';
+        sentiment_score: number;
+        themes: string[];
+    }) => {
+        const { error } = await supabase
+            .from("shareholder_feedback")
+            .insert(feedback);
+
+        if (error) throw error;
+        return true;
     }
 };

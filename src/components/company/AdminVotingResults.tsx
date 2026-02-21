@@ -173,7 +173,15 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
         }
     };
 
-    if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+    if (isLoading && sessionId) return <div className="p-8 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+
+    if (!sessionId) {
+        return (
+            <div className="p-12 text-center border border-dashed border-white/10 rounded-xl bg-card/10">
+                <p className="text-muted-foreground">Please select an active voting session to view analysis.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-fade-in-up">

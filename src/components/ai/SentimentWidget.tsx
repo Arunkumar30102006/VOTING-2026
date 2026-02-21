@@ -21,6 +21,16 @@ export const SentimentWidget = ({ feedbackText }: { feedbackText: string }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
+        const handleRequest = (e: any) => {
+            if (result && e.detail?.callback) {
+                e.detail.callback(result);
+            }
+        };
+        window.addEventListener('requestSentimentData', handleRequest);
+        return () => window.removeEventListener('requestSentimentData', handleRequest);
+    }, [result]);
+
+    useEffect(() => {
         const analyzeSentiment = async () => {
             if (!feedbackText) return;
 
@@ -97,7 +107,7 @@ export const SentimentWidget = ({ feedbackText }: { feedbackText: string }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <Card className="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-gray-200 dark:border-gray-800 transition-all hover:shadow-md cursor-pointer project-card-hover" onClick={() => setIsOpen(true)}>
+            <Card className="w-full bg-primary/5 dark:bg-primary/5 border-primary/10 transition-all cursor-pointer hover:bg-primary/10" onClick={() => setIsOpen(true)}>
                 <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

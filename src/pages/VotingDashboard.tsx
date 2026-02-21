@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -33,6 +33,7 @@ import { votingApi } from "@/services/api/voting";
 import { VotingItem, VoteType, VoteRecord } from "@/types/voting";
 import { supabase } from "@/integrations/supabase/client";
 import { MerkleTree } from "@/lib/merkle";
+import { ShareholderFeedbackForm } from "@/components/ai/ShareholderFeedbackForm";
 
 const AppointProxyCard = ({
   shareholders,
@@ -141,6 +142,27 @@ const VotingDashboard = () => {
     queryFn: () => votingApi.getShareholderVotes(shareholderId!),
     enabled: !!shareholderId,
   });
+
+  // Real-time Status Sync: Automatically refetch session when start/end time is reached
+  useEffect(() => {
+    if (!session || !shareholder?.company_id) return;
+
+    const now = new Date();
+    const start = new Date(session.start_date);
+    const end = new Date(session.end_date);
+
+    let nextEvent: Date | null = null;
+    if (now < start) nextEvent = start;
+    else if (now < end) nextEvent = end;
+
+    if (nextEvent) {
+      const delay = nextEvent.getTime() - now.getTime() + 1000;
+      const timer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["session", shareholder.company_id] });
+      }, delay);
+      return () => clearTimeout(timer);
+    }
+  }, [session, shareholder?.company_id, queryClient]);
 
   // Proxy Delegation State
   const { data: delegation, isLoading: loadingDelegation, refetch: refetchDelegation } = useQuery({
@@ -280,12 +302,29 @@ const VotingDashboard = () => {
 
   const totalVoted = votingItems.filter((item) => item.voted).length;
 
-  const isSessionExpired = session?.end_date ? new Date() > new Date(session.end_date) : false;
+  const now = new Date();
+  const isSessionStarted = session?.start_date ? now >= new Date(session.start_date) : false;
+  const isSessionExpired = session?.end_date ? now > new Date(session.end_date) : false;
+  const isSessionActive = session?.is_active && isSessionStarted && !isSessionExpired;
 
   const handleVote = useCallback(async (itemId: string, voteType: "for" | "against" | "abstain") => {
+    if (!isSessionStarted) {
+      toast.error("Voting Not Started", {
+        description: "The voting period has not started yet. Please check back at the scheduled time.",
+      });
+      return;
+    }
+
     if (isSessionExpired) {
       toast.error("Voting Session Closed", {
         description: "The voting period has ended. You cannot cast new votes.",
+      });
+      return;
+    }
+
+    if (!isSessionActive) {
+      toast.error("Voting Paused", {
+        description: "The voting session is currently paused by the administrator.",
       });
       return;
     }
@@ -537,6 +576,16 @@ const VotingDashboard = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Feedback Section */}
+          {!isLoading && session && shareholderId && (
+            <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+              <ShareholderFeedbackForm
+                sessionId={session.id}
+                shareholderId={shareholderId}
+              />
             </div>
           )}
 

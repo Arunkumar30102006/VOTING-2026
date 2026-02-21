@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Building2, ArrowRight, Shield, CheckCircle2 } from "lucide-react";
+import { trackEvent, AnalyticsEvents } from "@/lib/analytics";
 
 const CTASection = () => {
   const benefits = [
@@ -53,7 +54,7 @@ const CTASection = () => {
           </div>
 
           {/* CTA Button */}
-          <Link to="/company-register">
+          <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'cta_section' })}>
             <Button
               variant="default"
               size="xl"

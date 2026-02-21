@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/layout/SEO";
 
 const Contact = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,6 +58,11 @@ const Contact = () => {
 
     return (
         <div className="min-h-screen relative">
+            <SEO
+                title="Contact Us"
+                description="Have questions? Get in touch with our team for support and inquiries about our e-voting solutions."
+                canonical="/contact"
+            />
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20">
                 <div className="max-w-5xl mx-auto">

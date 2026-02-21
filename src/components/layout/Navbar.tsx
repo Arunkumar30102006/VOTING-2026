@@ -86,7 +86,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 h-20 bg-black/20 backdrop-blur-md border-b border-white/10 transition-all duration-300">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-20 bg-black/40 backdrop-blur-xl border-b border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] transition-all duration-300">
         <div className="w-full h-full px-4 md:px-8 grid grid-cols-[auto_1fr_auto] items-center relative">
 
           {/* Left: Logo & Mode Toggle */}

@@ -1,10 +1,16 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Shield, Users, Target, Award } from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
 
 const About = () => {
     return (
         <div className="min-h-screen relative">
+            <SEO
+                title="About Us"
+                description="Learn about our mission to modernize corporate governance in India with secure digital voting."
+                canonical="/about"
+            />
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20">
                 <div className="max-w-4xl mx-auto space-y-12">

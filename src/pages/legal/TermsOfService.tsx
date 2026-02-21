@@ -1,10 +1,16 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Gavel, AlertTriangle, FileCheck, ShieldAlert } from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
 
 const TermsOfService = () => {
     return (
         <div className="min-h-screen relative">
+            <SEO
+                title="Terms of Service"
+                description="Review the terms and conditions for using ShareholderVoting.in's secure e-voting platform."
+                canonical="/terms-of-service"
+            />
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20 max-w-4xl">
                 <div className="space-y-8 bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">

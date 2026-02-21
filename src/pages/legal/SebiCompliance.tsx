@@ -1,10 +1,16 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Shield, CheckCircle } from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
 
 const SebiCompliance = () => {
     return (
         <div className="min-h-screen relative">
+            <SEO
+                title="SEBI Compliance"
+                description="Vote India Secure ensures full compliance with SEBI and MCA regulations for electronic voting processes."
+                canonical="/sebi-compliance"
+            />
             <Navbar />
             <div className="container mx-auto px-4 py-24 md:py-32 max-w-4xl">
                 <div className="flex items-center gap-4 mb-8">

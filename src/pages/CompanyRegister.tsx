@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/layout/Navbar";
-
 import Footer from "@/components/layout/Footer";
+import { SEO } from "@/components/layout/SEO";
 import {
   Building2,
   Mail,
@@ -338,6 +338,11 @@ const CompanyRegister = () => {
 
   return (
     <div className="min-h-screen relative">
+      <SEO
+        title="Register Your Company"
+        description="Join India's most secure e-voting platform. Register your company today for transparent and compliant shareholder voting."
+        canonical="/company-register"
+      />
       <Navbar />
 
       <main className="pt-24 pb-16">

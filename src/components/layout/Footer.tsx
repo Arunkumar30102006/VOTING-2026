@@ -1,12 +1,19 @@
 import { Link } from "react-router-dom";
 import { Vote, Shield, Lock, Mail, Phone, MapPin } from "lucide-react";
+import { motion } from "motion/react";
 
 const Footer = () => {
   return (
     <footer className="bg-black/20 backdrop-blur-md border-t border-white/10 text-foreground transition-colors duration-300">
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12"
+        >
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
@@ -96,18 +103,24 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-white/10">
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="border-t border-white/10"
+      >
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p>© 2026 ShareholderVoting.in. All rights reserved.</p>
             <p>Secure. Transparent. Reliable.</p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </footer>
   );
 };

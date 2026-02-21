@@ -16,7 +16,10 @@ import {
   LogOut,
   ChevronRight,
   Menu,
-  Video
+  Video,
+  UserCheck,
+  UserPlus,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { SEO } from "@/components/layout/SEO";
@@ -28,6 +31,80 @@ import VotingAnalytics from "@/components/dashboard/VotingAnalytics";
 import VotingCardSkeleton from "@/components/voting/VotingCardSkeleton";
 import { votingApi } from "@/services/api/voting";
 import { VotingItem, VoteType, VoteRecord } from "@/types/voting";
+import { supabase } from "@/integrations/supabase/client";
+
+const AppointProxyCard = ({
+  shareholders,
+  onDelegate,
+  delegation,
+  isDelegating
+}: {
+  shareholders: any[],
+  onDelegate: (proxyId: string) => void,
+  delegation: any,
+  isDelegating: boolean
+}) => {
+  const [selectedProxyId, setSelectedProxyId] = useState("");
+
+  if (delegation) {
+    return (
+      <Card className="border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10 mb-8">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg text-foreground mb-1">Proxy Appointed</h3>
+              <p className="text-sm text-muted-foreground">
+                Your voting rights for this session are delegated to: <span className="font-bold">{delegation.proxy?.shareholder_name}</span> ({delegation.proxy?.email})
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-900/10 mb-8">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg text-foreground mb-1">Appoint a Proxy</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Can't attend? Delegate your voting rights to another trusted shareholder for this session.
+              </p>
+              <div className="flex gap-2">
+                <select
+                  className="bg-background border rounded px-3 py-2 text-sm max-w-[250px]"
+                  value={selectedProxyId}
+                  onChange={(e) => setSelectedProxyId(e.target.value)}
+                >
+                  <option value="">Select Shareholder...</option>
+                  {shareholders?.map(s => (
+                    <option key={s.id} value={s.id}>{s.shareholder_name} ({s.email})</option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  disabled={!selectedProxyId || isDelegating}
+                  onClick={() => onDelegate(selectedProxyId)}
+                >
+                  {isDelegating ? "Delegating..." : "Delegate Now"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const VotingDashboard = () => {
   const navigate = useNavigate();
@@ -63,6 +140,72 @@ const VotingDashboard = () => {
     queryFn: () => votingApi.getShareholderVotes(shareholderId!),
     enabled: !!shareholderId,
   });
+
+  // Proxy Delegation State
+  const { data: delegation, isLoading: loadingDelegation, refetch: refetchDelegation } = useQuery({
+    queryKey: ["proxy-delegation", shareholderId, session?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("proxy_delegations")
+        .select(`
+          *,
+          proxy:proxy_id (id, shareholder_name, email)
+        `)
+        .eq("delegator_id", shareholderId)
+        .eq("session_id", session?.id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!shareholderId && !!session?.id,
+  });
+
+  const { data: myDelegators, isLoading: loadingMyDelegators } = useQuery({
+    queryKey: ["my-delegators", shareholderId, session?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("proxy_delegations")
+        .select(`
+          *,
+          delegator:delegator_id (id, shareholder_name, email)
+        `)
+        .eq("proxy_id", shareholderId)
+        .eq("session_id", session?.id)
+        .eq("status", "active");
+      if (error) return [];
+      return data;
+    },
+    enabled: !!shareholderId && !!session?.id,
+  });
+
+  const { data: companyShareholders } = useQuery({
+    queryKey: ["company-shareholders", shareholder?.company_id],
+    queryFn: () => votingApi.getCompanyShareholders(shareholder!.company_id),
+    enabled: !!shareholder?.company_id,
+  });
+
+  const [isDelegating, setIsDelegating] = useState(false);
+  const handleDelegate = async (proxyId: string) => {
+    if (!shareholderId || !session?.id) return;
+    setIsDelegating(true);
+    try {
+      const { error } = await supabase
+        .from("proxy_delegations")
+        .insert({
+          delegator_id: shareholderId,
+          proxy_id: proxyId,
+          session_id: session.id,
+          status: "active"
+        });
+      if (error) throw error;
+      toast.success("Proxy Appointed Successfully");
+      refetchDelegation();
+    } catch (err: any) {
+      toast.error(`Delegation Failed: ${err.message}`);
+    } finally {
+      setIsDelegating(false);
+    }
+  };
 
   const isLoading = loadingShareholder || loadingSession || loadingResolutions || loadingVotes;
 
@@ -140,10 +283,23 @@ const VotingDashboard = () => {
     queryClient.setQueryData(["votes", shareholderId], (old: VoteRecord[] | undefined) => [...(old || []), newVote]);
 
     try {
+      // 1. Primary Vote (Voter themselves)
       await votingApi.castVote(shareholderId, itemId, upperVoteType, voteHash);
 
+      // 2. Delegate Votes (Votes on behalf of others)
+      if (myDelegators && myDelegators.length > 0) {
+        for (const d of myDelegators) {
+          try {
+            const dHash = await generateVoteHash(d.delegator_id, itemId, voteType, timestamp);
+            await votingApi.castVote(d.delegator_id, itemId, upperVoteType, dHash);
+          } catch (err) {
+            console.error(`Failed to cast proxy vote for ${d.delegator_id}:`, err);
+          }
+        }
+      }
+
       toast.success("Vote securely recorded!", {
-        description: `Your vote has been cryptographically hashed.`,
+        description: `Your vote (and any delegated votes) has been cryptographically hashed.`,
       });
     } catch (e: any) {
       console.error("Error recording vote:", e);
@@ -250,6 +406,19 @@ const VotingDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+
+          {/* Proxy Delegation Section */}
+          {!isLoading && session && (
+            <div className="animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+              <AppointProxyCard
+                shareholders={companyShareholders?.filter(s => s.id !== shareholderId) || []}
+                delegation={delegation}
+                isDelegating={isDelegating}
+                onDelegate={handleDelegate}
+              />
             </div>
           )}
 

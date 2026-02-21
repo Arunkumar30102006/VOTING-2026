@@ -9,6 +9,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { motion } from "motion/react";
+import { trackEvent, AnalyticsEvents } from "@/lib/analytics";
 
 const HeroSection = () => {
   const features = [
@@ -75,14 +76,14 @@ const HeroSection = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
-              <Link to="/company-register">
+              <Link to="/company-register" onClick={() => trackEvent(AnalyticsEvents.REGISTER_CLICK, { location: 'hero' })}>
                 <Button variant="hero" size="xl" className="w-full sm:w-auto gap-2">
                   <Building2 className="w-5 h-5" />
                   Register Your Company
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
-              <Link to="/shareholder-login">
+              <Link to="/shareholder-login" onClick={() => trackEvent(AnalyticsEvents.LOGIN_CLICK, { type: 'shareholder', location: 'hero' })}>
                 <Button variant="outline" size="xl" className="w-full sm:w-auto gap-2">
                   <Users className="w-5 h-5" />
                   Shareholder Login

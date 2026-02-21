@@ -69,5 +69,15 @@ export const votingApi = {
 
         if (error) throw error;
         return data;
+    },
+
+    getCompanyShareholders: async (companyId: string): Promise<Shareholder[]> => {
+        const { data, error } = await supabase
+            .from("shareholders")
+            .select("*")
+            .eq("company_id", companyId);
+
+        if (error) throw error;
+        return data as unknown as Shareholder[];
     }
 };

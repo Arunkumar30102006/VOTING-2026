@@ -1,10 +1,16 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Shield, Lock, Server, FileCheck, Eye, BadgeCheck } from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
 
 const Security = () => {
     return (
         <div className="min-h-screen relative">
+            <SEO
+                title="Security Architecture"
+                description="Our bank-grade security protocols ensure the highest level of protection for your corporate data and voting integrity."
+                canonical="/security"
+            />
             <Navbar />
             <main className="container mx-auto px-4 py-12 md:py-20">
                 <div className="max-w-5xl mx-auto space-y-16">

@@ -1,10 +1,16 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Lock, Server, ShieldCheck, Key } from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
 
 const DataProtection = () => {
     return (
         <div className="min-h-screen relative">
+            <SEO
+                title="Data Protection"
+                description="Our comprehensive data protection measures ensure the confidentiality, integrity, and availability of your corporate and voting data."
+                canonical="/data-protection"
+            />
             <Navbar />
             <div className="container mx-auto px-4 py-24 md:py-32 max-w-4xl">
                 <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">

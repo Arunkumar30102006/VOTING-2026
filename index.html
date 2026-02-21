@@ -17,7 +17,7 @@
   <meta name="description" content="Secure E-Voting Platform for Indian Companies" />
   <meta name="author" content="Vote India Team" />
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.supabase.co https://www.googletagmanager.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://*.google-analytics.com; img-src 'self' data: https://*.supabase.co https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:;">
+    content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; worker-src 'self' blob:;">
 
   <meta property="og:title" content="Vote India Secure" />
   <meta property="og:description" content="Secure E-Voting Platform for Indian Companies" />
@@ -75,15 +75,15 @@
 
   <script type="module" src="/src/main.tsx"></script>
   <script>
+    // Force unregister any existing service worker to clear stale cache
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('SW registered: ', registration);
-          })
-          .catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
-          });
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+          console.log('Service Worker unregistered successfully');
+        }
+      }).catch(function (err) {
+        console.warn('Service Worker unregistration failed: ', err);
       });
     }
   </script>

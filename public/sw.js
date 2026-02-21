@@ -1,7 +1,6 @@
 const CACHE_NAME = 'vote-india-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
+    '/vote-icon.svg',
     '/manifest.json'
 ];
 

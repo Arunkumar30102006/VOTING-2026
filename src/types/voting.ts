@@ -8,6 +8,8 @@ export interface VotingItem {
     voted: boolean;
     vote: VoteType | null;
     voteHash?: string;
+    merkleProof?: Array<{ position: 'left' | 'right', data: string }> | null;
+    anchorRoot?: string;
 }
 
 export interface Shareholder {

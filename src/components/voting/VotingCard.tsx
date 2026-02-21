@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, Shield, ExternalLink, Lock, ThumbsUp, ThumbsDown, Minus, Info } from "lucide-react";
+import { CheckCircle2, Shield, ExternalLink, Lock, ThumbsUp, ThumbsDown, Minus, Info, ShieldCheck } from "lucide-react";
 import { getExplorerLink } from "@/lib/blockchain";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { VotingItem } from "@/types/voting";
@@ -138,6 +138,35 @@ const VotingCard = memo(({ item, index, onVote }: VotingCardProps) => {
                                                             <Lock className="w-3 h-3" />
                                                             <span>Secured by Immutable Ledger & RLS</span>
                                                         </div>
+
+                                                        {item.anchorRoot && (
+                                                            <div className="mt-4 pt-4 border-t border-border flex flex-col gap-3">
+                                                                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500 uppercase tracking-wider">
+                                                                    <ShieldCheck className="w-4 h-4" />
+                                                                    Blockchain Verified
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <Label className="text-[10px] text-muted-foreground uppercase">Merkle Root (Anchored)</Label>
+                                                                    <div className="p-2 bg-emerald-500/5 font-mono text-[10px] break-all rounded border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                                                                        {item.anchorRoot}
+                                                                    </div>
+                                                                </div>
+                                                                {item.merkleProof && (
+                                                                    <div className="space-y-1.5">
+                                                                        <Label className="text-[10px] text-muted-foreground uppercase">Merkle Path (Verification Proof)</Label>
+                                                                        <div className="flex flex-col gap-1">
+                                                                            {item.merkleProof.map((p, i) => (
+                                                                                <div key={i} className="flex items-center gap-2 text-[9px] font-mono text-muted-foreground">
+                                                                                    <span className="opacity-50">Step {i + 1}:</span>
+                                                                                    <span className="truncate">{p.data.slice(0, 16)}...</span>
+                                                                                    <span className="px-1 rounded bg-muted text-[8px] uppercase">{p.position}</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>

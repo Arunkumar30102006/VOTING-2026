@@ -32,6 +32,7 @@ import VotingCardSkeleton from "@/components/voting/VotingCardSkeleton";
 import { votingApi } from "@/services/api/voting";
 import { VotingItem, VoteType, VoteRecord } from "@/types/voting";
 import { supabase } from "@/integrations/supabase/client";
+import { MerkleTree } from "@/lib/merkle";
 
 const AppointProxyCard = ({
   shareholders,
@@ -178,6 +179,39 @@ const VotingDashboard = () => {
     enabled: !!shareholderId && !!session?.id,
   });
 
+  // Blockchain Anchor Data
+  const { data: anchorData } = useQuery({
+    queryKey: ["block-anchor", session?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("block_anchors")
+        .select("*")
+        .eq("session_id", session?.id)
+        .maybeSingle();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!session?.id,
+  });
+
+  // All Vote Hashes (for proof generation) - Restricted to when anchored
+  const { data: sessionProofData } = useQuery({
+    queryKey: ["session-proof-hashes", session?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("votes")
+        .select("vote_hash, resolution_id")
+        .in("resolution_id", (resolutions || []).map(r => r.id))
+        .order("vote_hash", { ascending: true });
+      if (error) return null;
+
+      const hashes = data.map(v => v.vote_hash);
+      const tree = await MerkleTree.create(hashes);
+      return { tree, hashes };
+    },
+    enabled: !!session?.id && !!anchorData,
+  });
+
   const { data: companyShareholders } = useQuery({
     queryKey: ["company-shareholders", shareholder?.company_id],
     queryFn: () => votingApi.getCompanyShareholders(shareholder!.company_id),
@@ -213,6 +247,7 @@ const VotingDashboard = () => {
   const votingItems: VotingItem[] = resolutions?.map((res) => {
     const voteRecord = existingVotes?.find((v) => v.resolution_id === res.id);
     let voteValue: VoteType | null = null;
+    let proof = null;
 
     if (voteRecord) {
       // Normalize existing vote value
@@ -220,6 +255,14 @@ const VotingDashboard = () => {
       if (val === "FOR") voteValue = "FOR";
       else if (val === "AGAINST") voteValue = "AGAINST";
       else if (val === "ABSTAIN") voteValue = "ABSTAIN";
+
+      // Generate Merkle Proof if session is anchored
+      if (sessionProofData?.tree) {
+        const leafIndex = sessionProofData.hashes.indexOf(voteRecord.vote_hash);
+        if (leafIndex !== -1) {
+          proof = sessionProofData.tree.getProof(leafIndex);
+        }
+      }
     }
 
     return {
@@ -230,6 +273,8 @@ const VotingDashboard = () => {
       voted: !!voteRecord,
       vote: voteValue,
       voteHash: voteRecord?.vote_hash,
+      merkleProof: proof,
+      anchorRoot: anchorData?.merkle_root
     };
   }) || [];
 

@@ -65,12 +65,6 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/company-register" element={<CompanyRegister />} />
                     <Route path="/company-login" element={<CompanyLogin />} />
-                    import ProtectedAdminRoute from "@/components/auth/ProtectedAdminRoute";
-
-                    // ... inside Routes ...
-                    <Route path="/" element={<Index />} />
-                    <Route path="/company-register" element={<CompanyRegister />} />
-                    <Route path="/company-login" element={<CompanyLogin />} />
                     <Route path="/shareholder-login" element={<ShareholderLogin />} />
                     <Route path="/voting-dashboard" element={<VotingDashboard />} />
 

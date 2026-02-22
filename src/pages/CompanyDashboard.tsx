@@ -39,6 +39,7 @@ import { z } from "zod";
 import { sendEmail } from "@/lib/email";
 import { votingApi } from "@/services/api/voting";
 import { DashboardFeedback } from "@/components/company/DashboardFeedback";
+import { env } from "@/config/env";
 import { DocumentSummarizer } from "@/components/ai/DocumentSummarizer";
 import { SentimentWidget } from "@/components/ai/SentimentWidget";
 import { AIAnalysisDemo } from "@/components/company/AIAnalysisDemo";
@@ -251,7 +252,7 @@ const CompanyDashboard = () => {
             password: password,
           },
           headers: {
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
           }
         });
 
@@ -330,7 +331,7 @@ const CompanyDashboard = () => {
           password: password,
         },
         headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
         }
       });
 
@@ -392,7 +393,7 @@ const CompanyDashboard = () => {
           otp: otp
         },
         headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
         }
       });
 

@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLocation } from "react-router-dom";
+import { env } from "@/config/env";
 
 const WebsiteFeedback = () => {
     const [open, setOpen] = useState(false);
@@ -62,7 +63,7 @@ const WebsiteFeedback = () => {
                     pageName: location.pathname,
                 },
                 headers: {
-                    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
                 }
             });
 

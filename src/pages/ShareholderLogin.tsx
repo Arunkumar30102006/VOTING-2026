@@ -18,6 +18,7 @@ import {
   KeyRound
 } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 const ShareholderLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -117,7 +118,7 @@ const ShareholderLogin = () => {
             name: name
           },
           headers: {
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
           }
         });
 

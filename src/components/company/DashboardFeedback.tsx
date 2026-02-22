@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { env } from "@/config/env";
 
 interface DashboardFeedbackProps {
     email: string;
@@ -61,7 +62,7 @@ export const DashboardFeedback = ({ email, companyName }: DashboardFeedbackProps
                     email: email,
                 },
                 headers: {
-                    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
                 }
             });
 

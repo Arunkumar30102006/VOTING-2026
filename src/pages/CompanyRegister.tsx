@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { SEO } from "@/components/layout/SEO";
+import { env } from "@/config/env";
 import {
   Building2,
   Mail,
@@ -19,7 +20,8 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Loader2
+  Loader2,
+  Briefcase
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,11 +69,15 @@ const CompanyRegister = () => {
   useEffect(() => {
     const clearSession = async () => {
       try {
-        // Use a silent approach to clear session
-        localStorage.removeItem("supabase.auth.token");
-        await supabase.auth.signOut();
+        // Only clear if a likely stale/invalid session exists to avoid unnecessary calls
+        const sessionToken = localStorage.getItem("supabase.auth.token");
+        if (sessionToken && (sessionToken.includes('"expires_at":') || sessionToken.includes('access_token'))) {
+          // Use local scope to avoid server call that might 401
+          await supabase.auth.signOut({ scope: 'local' });
+          localStorage.removeItem("supabase.auth.token");
+        }
       } catch (e) {
-        console.warn("Silent signout notice:", e);
+        // Silently ignore all errors during cleanup
       }
     };
     clearSession();
@@ -151,7 +157,7 @@ const CompanyRegister = () => {
             name: formData.contactName
           },
           headers: {
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
           }
         });
 
@@ -197,7 +203,7 @@ const CompanyRegister = () => {
             code: formData.otp
           },
           headers: {
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
           }
         });
 

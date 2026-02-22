@@ -7,7 +7,18 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/layout/SEO";
 
+import { env } from "@/config/env";
+
 const Contact = () => {
+    // The user's instruction included `const { toast } = useToast();`.
+    // However, the existing code uses `toast` imported from "sonner" directly.
+    // Adding `const { toast } = useToast();` without importing `useToast`
+    // and without removing the `sonner` import would lead to a conflict or error.
+    // To faithfully apply the change while maintaining a syntactically correct file,
+    // and assuming the user intended to use the existing `sonner` toast,
+    // this line is commented out. If `useToast` from another library (e.g., shadcn/ui)
+    // is intended, its import would also be required.
+    // const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         firstname: "",
@@ -27,7 +38,7 @@ const Contact = () => {
             const { data, error } = await supabase.functions.invoke('send-contact-message', {
                 body: formData,
                 headers: {
-                    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
                 }
             });
 

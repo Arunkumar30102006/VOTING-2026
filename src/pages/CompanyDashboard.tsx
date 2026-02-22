@@ -36,7 +36,6 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
-import { sendEmail } from "@/lib/email";
 import { votingApi } from "@/services/api/voting";
 import { DashboardFeedback } from "@/components/company/DashboardFeedback";
 import { env } from "@/config/env";
@@ -440,7 +439,11 @@ const CompanyDashboard = () => {
       }
 
       // 4. Delete Auth User (New Step: Allow reuse of email)
-      const { error: deleteAccError } = await supabase.functions.invoke("delete-account");
+      const { error: deleteAccError } = await supabase.functions.invoke("delete-account", {
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        }
+      });
       if (deleteAccError) {
         console.error("Auth deletion failed:", deleteAccError);
         toast.warning("Company data deleted, but account reset had minor issues. Please contact support if re-registration fails.");

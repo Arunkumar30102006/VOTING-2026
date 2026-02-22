@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { env } from '@/config/env';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,10 @@ export const DocumentSummarizer = () => {
         setIsLoading(true);
         try {
             const { data, error } = await supabase.functions.invoke('ai-ops', {
-                body: { action: 'summarize', payload: { text } }
+                body: { action: 'summarize', payload: { text } },
+                headers: {
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                }
             });
 
             if (error) throw error;

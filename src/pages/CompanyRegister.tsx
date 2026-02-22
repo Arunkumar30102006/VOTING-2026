@@ -304,6 +304,9 @@ const CompanyRegister = () => {
           adminName: formData.contactName,
           address: `${formData.registeredAddress}, ${formData.area}, ${formData.district}, ${formData.state}, ${formData.country} - ${formData.pincode}`,
           phone: formData.contactPhone
+        },
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
         }
       }).then(({ error }) => {
         if (error) console.error("Failed to send welcome email:", error);

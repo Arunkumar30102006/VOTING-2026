@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { env } from '@/config/env';
 import { votingApi } from '@/services/api/voting';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,10 @@ export const ShareholderFeedbackForm = ({ sessionId, shareholderId }: { sessionI
         try {
             // 1. Analyze Sentiment via AI Edge Function
             const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-ops', {
-                body: { action: 'sentiment', payload: { text: content } }
+                body: { action: 'sentiment', payload: { text: content } },
+                headers: {
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                }
             });
 
             if (aiError) throw aiError;

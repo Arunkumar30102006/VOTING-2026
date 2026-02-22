@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { load } from "@cashfreepayments/cashfree-js";
 import QRCode from "react-qr-code";
 import { supabase } from "@/integrations/supabase/client";
+import { env } from "@/config/env";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,9 @@ const CashfreeGateway = ({ amount, onSuccess, onCancel }: CashfreeGatewayProps) 
                     amount: amount,
                     customerPhone: customerPhone,
                     customerId: "USER_" + Math.random().toString(36).substr(2, 9)
+                },
+                headers: {
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
                 }
             });
 

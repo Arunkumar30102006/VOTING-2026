@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { env } from '@/config/env';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -37,7 +38,10 @@ export const SentimentWidget = ({ feedbackText }: { feedbackText: string }) => {
             setIsLoading(true);
             try {
                 const { data, error } = await supabase.functions.invoke('ai-ops', {
-                    body: { action: 'sentiment', payload: { text: feedbackText } }
+                    body: { action: 'sentiment', payload: { text: feedbackText } },
+                    headers: {
+                        "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                    }
                 });
 
                 if (error) throw error;

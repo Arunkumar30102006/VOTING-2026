@@ -38,8 +38,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { sendEmail } from "@/lib/email";
 import { supabase } from "@/integrations/supabase/client";
+import { env } from "@/config/env";
 import { z } from "zod";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -609,6 +609,9 @@ const VotingManagement = () => {
               companyName: company.company_name,
               qualification: validatedData.qualification,
               bio: validatedData.bio,
+            },
+            headers: {
+              "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
             }
           });
           toast.success("Nominee added, resolution created, and notification email sent!");
@@ -779,6 +782,9 @@ const VotingManagement = () => {
           endDate: (votingSession as any).meeting_end_date || votingSession.end_date,
           votingInstructions: sessionForm.votingInstructions,
           recipients: recipients,
+        },
+        headers: {
+          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
         }
       });
 

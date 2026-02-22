@@ -52,30 +52,22 @@ const WebsiteFeedback = () => {
             const { data: { user } } = await supabase.auth.getUser();
             const userEmail = email || user?.email || "anonymous";
 
-            // Direct fetch to debug 401/CORS issues
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-            const response = await fetch(`${supabaseUrl}/functions/v1/send-feedback-to-sheet`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${supabaseKey}`,
-                },
-                body: JSON.stringify({
+            const { data: result, error: functionError } = await supabase.functions.invoke('send-feedback-to-sheet', {
+                body: {
                     type: "website",
                     rating,
                     category,
                     message,
                     email: userEmail,
                     pageName: location.pathname,
-                }),
+                },
+                headers: {
+                    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                }
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || `Server Error: ${response.status}`);
+            if (functionError) {
+                throw new Error(functionError.message || `Server Error: ${functionError.status}`);
             }
 
             toast.success("Feedback submitted successfully!", {

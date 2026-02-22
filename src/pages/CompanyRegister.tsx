@@ -63,9 +63,18 @@ const CompanyRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Ensure clean state on mount
+  // Ensure clean state on mount without triggering error toasts
   useEffect(() => {
-    supabase.auth.signOut();
+    const clearSession = async () => {
+      try {
+        // Use a silent approach to clear session
+        localStorage.removeItem("supabase.auth.token");
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.warn("Silent signout notice:", e);
+      }
+    };
+    clearSession();
   }, []);
 
   const [formData, setFormData] = useState({
@@ -136,26 +145,18 @@ const CompanyRegister = () => {
 
         // Send OTP
         setIsLoading(true);
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email-otp`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({
-              email: formData.contactEmail,
-              name: formData.contactName
-            })
+        const { data, error: functionError } = await supabase.functions.invoke("send-email-otp", {
+          body: {
+            email: formData.contactEmail,
+            name: formData.contactName
+          },
+          headers: {
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           }
-        );
+        });
 
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          toast.error(data.message || "Failed to send verification code.");
+        if (functionError || !data?.success) {
+          toast.error(data?.message || functionError?.message || "Failed to send verification code.");
           setIsLoading(false);
           return;
         }
@@ -190,26 +191,18 @@ const CompanyRegister = () => {
     try {
       // Step 3 already implies previous validation, but let's verify OTP
       if (step === 3) {
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-email-otp`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({
-              email: formData.contactEmail,
-              code: formData.otp
-            })
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-email-otp", {
+          body: {
+            email: formData.contactEmail,
+            code: formData.otp
+          },
+          headers: {
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           }
-        );
+        });
 
-        const verifyData = await res.json();
-
-        if (!res.ok || !verifyData.success) {
-          toast.error(verifyData.message || "Invalid Verification Code");
+        if (verifyError || !verifyData?.success) {
+          toast.error(verifyData?.message || verifyError?.message || "Invalid Verification Code");
           setIsLoading(false);
           return;
         }

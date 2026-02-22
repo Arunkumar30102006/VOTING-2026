@@ -25,7 +25,10 @@ const Contact = () => {
             console.log("Sending contact message...", formData);
 
             const { data, error } = await supabase.functions.invoke('send-contact-message', {
-                body: formData
+                body: formData,
+                headers: {
+                    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                }
             });
 
             if (error) {

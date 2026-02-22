@@ -250,6 +250,9 @@ const CompanyDashboard = () => {
             loginId: loginId,
             password: password,
           },
+          headers: {
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+          }
         });
 
         if (emailError) throw emailError;
@@ -326,6 +329,9 @@ const CompanyDashboard = () => {
           loginId: loginId,
           password: password,
         },
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+        }
       });
 
       if (emailError) throw emailError;
@@ -384,6 +390,9 @@ const CompanyDashboard = () => {
           email: user.email,
           companyName: company.company_name,
           otp: otp
+        },
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
         }
       });
 

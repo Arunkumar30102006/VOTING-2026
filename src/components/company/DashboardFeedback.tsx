@@ -13,6 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -50,38 +51,22 @@ export const DashboardFeedback = ({ email, companyName }: DashboardFeedbackProps
         setIsSubmitting(true);
 
         try {
-            // Direct fetch to match the fixed backend logic
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-            const response = await fetch(`${supabaseUrl}/functions/v1/send-feedback-to-sheet`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${supabaseKey}`,
-                },
-                body: JSON.stringify({
-                    type: "dashboard", // Will be treated as Company Rating in backend 'else' block
+            const { data: result, error: functionError } = await supabase.functions.invoke('send-feedback-to-sheet', {
+                body: {
+                    type: "dashboard",
                     rating,
-                    category, // This will be logged in 'Company' column in backend unless updated, let's fix backend or adjust here
-                    // Wait, backend logic:
-                    // if type == website -> [Date, "Website Feedback", Email, Category, PageName, Rating, Message]
-                    // else -> [Date, "Company Rating", Email, CompanyName, Rating, Message]
-
-                    // So for 'else' case, 'category' is NOT used in the simplified backend. 
-                    // To keep it clean, we'll append category to message or just rely on message.
-                    // Actually, let's send simple data first.
-
+                    category,
                     companyName,
-                    message: `[Category: ${category}] ${message}`, // Append category to message so it's not lost
+                    message: `[Category: ${category}] ${message}`,
                     email: email,
-                }),
+                },
+                headers: {
+                    "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                }
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || `Server Error: ${response.status}`);
+            if (functionError) {
+                throw new Error(functionError.message || "Failed to submit feedback");
             }
 
             toast.success("Feedback sent to support team!");

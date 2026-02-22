@@ -62,7 +62,8 @@ export const DashboardFeedback = ({ email, companyName }: DashboardFeedbackProps
                     email: email,
                 },
                 headers: {
-                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`,
+                    "apikey": env.SUPABASE_ANON_KEY
                 }
             });
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, Star, X, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,23 @@ const WebsiteFeedback = () => {
     const [email, setEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const location = useLocation();
+
+    // Ensure clean state on mount without triggering error toasts
+    // This is especially important for floating widgets that might load on a 401'd page
+    useEffect(() => {
+        if (!open) return; // Only clear when the dialog actually opens
+
+        const clearSession = async () => {
+            try {
+                const sessionToken = localStorage.getItem("supabase.auth.token");
+                if (sessionToken && (sessionToken.includes('"expires_at":') || sessionToken.includes('access_token'))) {
+                    await supabase.auth.signOut({ scope: 'local' });
+                    localStorage.removeItem("supabase.auth.token");
+                }
+            } catch (e) { /* silent */ }
+        };
+        clearSession();
+    }, [open]);
 
     const categories = [
         { value: "bug", label: "Bug Report" },
@@ -63,7 +80,8 @@ const WebsiteFeedback = () => {
                     pageName: location.pathname,
                 },
                 headers: {
-                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`,
+                    "apikey": env.SUPABASE_ANON_KEY
                 }
             });
 

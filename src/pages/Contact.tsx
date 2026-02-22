@@ -2,7 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/layout/SEO";
@@ -28,6 +28,24 @@ const Contact = () => {
         message: ""
     });
 
+    // Ensure clean state on mount without triggering error toasts
+    useEffect(() => {
+        const clearSession = async () => {
+            try {
+                // Only clear if a likely stale/invalid session exists to avoid unnecessary calls
+                const sessionToken = localStorage.getItem("supabase.auth.token");
+                if (sessionToken && (sessionToken.includes('"expires_at":') || sessionToken.includes('access_token'))) {
+                    // Use local scope to avoid server call that might 401
+                    await supabase.auth.signOut({ scope: 'local' });
+                    localStorage.removeItem("supabase.auth.token");
+                }
+            } catch (e) {
+                // Silently ignore all errors during cleanup
+            }
+        };
+        clearSession();
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -38,7 +56,8 @@ const Contact = () => {
             const { data, error } = await supabase.functions.invoke('send-contact-message', {
                 body: formData,
                 headers: {
-                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`,
+                    "apikey": env.SUPABASE_ANON_KEY
                 }
             });
 

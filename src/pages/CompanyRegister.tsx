@@ -145,11 +145,11 @@ const CompanyRegister = () => {
   const warmEdgeFunction = async () => {
     try {
       // Trigger a preflight request to wake up the edge function (mitigate cold starts)
-      await fetch(`${env.VITE_SUPABASE_URL}/functions/v1/send-email-otp`, {
+      await fetch(`${env.SUPABASE_URL}/functions/v1/send-email-otp`, {
         method: "OPTIONS",
         headers: {
           "Content-Type": "application/json",
-          "apikey": env.VITE_SUPABASE_ANON_KEY
+          "apikey": env.SUPABASE_ANON_KEY
         }
       });
       console.log("OTP function warmed up");

@@ -101,8 +101,43 @@ const CompanyRegister = () => {
     otp: "",
   });
 
+  const fetchPincodeData = async (pincode: string) => {
+    if (pincode.length !== 6) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const data = await response.json();
+
+      if (data[0].Status === "Success") {
+        const postOffice = data[0].PostOffice[0];
+        setFormData(prev => ({
+          ...prev,
+          state: postOffice.State,
+          district: postOffice.District,
+          // Area could be multiple, we'll suggest the first one or let them keep typing
+          area: prev.area || postOffice.Name
+        }));
+        setErrors(prev => ({ ...prev, pincode: "" }));
+        toast.success("Address auto-filled from PIN code");
+      } else {
+        setErrors(prev => ({ ...prev, pincode: "Invalid PIN code for India" }));
+      }
+    } catch (error) {
+      console.error("PIN Lookup Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Auto-fetch address when 6 digits entered for pincode
+    if (name === "pincode" && value.length === 6 && /^\d+$/.test(value) && formData.country === "India") {
+      fetchPincodeData(value);
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
@@ -496,6 +531,44 @@ const CompanyRegister = () => {
 
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* PIN Code - Moved up for better flow */}
+                      <div className="space-y-2">
+                        <Label htmlFor="pincode">PIN Code *</Label>
+                        <div className="relative">
+                          <Input
+                            id="pincode"
+                            name="pincode"
+                            value={formData.pincode}
+                            onChange={handleInputChange}
+                            placeholder="400001"
+                            maxLength={6}
+                            className={`tracking-widest font-mono ${errors.pincode ? "border-destructive lg:ring-destructive" : ""}`}
+                            required
+                          />
+                          {isLoading && formData.pincode.length === 6 && (
+                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                          )}
+                        </div>
+                        {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
+                      </div>
+
+                      {/* Area */}
+                      <div className="space-y-2">
+                        <Label htmlFor="area">Area *</Label>
+                        <Input
+                          id="area"
+                          name="area"
+                          value={formData.area}
+                          onChange={handleInputChange}
+                          placeholder="e.g., Andheri West"
+                          className={errors.area ? "border-destructive" : ""}
+                          required
+                        />
+                        {errors.area && <p className="text-sm text-destructive">{errors.area}</p>}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* State Selection */}
                       <div className="space-y-2">
                         <Label htmlFor="state">State *</Label>
@@ -504,7 +577,7 @@ const CompanyRegister = () => {
                             <select
                               id="state"
                               name="state"
-                              value={indianStates.includes(formData.state) ? formData.state : "Other"}
+                              value={indianStates.includes(formData.state) ? formData.state : (formData.state ? "Other" : "")}
                               onChange={(e) => {
                                 const val = e.target.value;
                                 if (val === "Other") {
@@ -522,7 +595,7 @@ const CompanyRegister = () => {
                               <option value="Other">Other (Type Manually)</option>
                             </select>
 
-                            {(!indianStates.includes(formData.state) && formData.state !== "") || formData.state === "Other" ? (
+                            {(!indianStates.includes(formData.state) && formData.state !== "" && formData.state !== "Other") || formData.state === "Other" ? (
                               <Input
                                 name="state"
                                 value={formData.state === "Other" ? "" : formData.state}
@@ -549,13 +622,13 @@ const CompanyRegister = () => {
                       {/* District Selection */}
                       <div className="space-y-2">
                         <Label htmlFor="district">District *</Label>
-                        {formData.country === "India" && (indianStates.includes(formData.state) || formData.state === "Other") ? (
+                        {formData.country === "India" && (indianStates.includes(formData.state) || formData.state === "Other" || formData.state === "") ? (
                           <>
                             {districtsMap[formData.state] ? (
                               <select
                                 id="district"
                                 name="district"
-                                value={districtsMap[formData.state].includes(formData.district) ? formData.district : "Other"}
+                                value={districtsMap[formData.state]?.includes(formData.district) ? formData.district : (formData.district ? "Other" : "")}
                                 onChange={(e) => {
                                   const val = e.target.value;
                                   if (val === "Other") {
@@ -573,19 +646,24 @@ const CompanyRegister = () => {
                                 <option value="Other">Other (Type Manually)</option>
                               </select>
                             ) : (
-                              <div className="h-10 flex items-center text-sm text-muted-foreground border rounded-md px-3 bg-muted/50">
-                                type manually below...
-                              </div>
+                              <Input
+                                id="district"
+                                name="district"
+                                value={formData.district}
+                                onChange={handleInputChange}
+                                placeholder="Enter District"
+                                className={errors.district ? "border-destructive" : ""}
+                              />
                             )}
 
-                            {(!districtsMap[formData.state]?.includes(formData.district) || formData.district === "Other") && (
+                            {formData.district === "Other" && (
                               <Input
                                 name="district"
                                 value={formData.district === "Other" ? "" : formData.district}
                                 onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
                                 placeholder="Type District Name"
                                 className="mt-2"
-                                autoFocus={formData.district === "Other"}
+                                autoFocus
                               />
                             )}
                           </>
@@ -600,35 +678,6 @@ const CompanyRegister = () => {
                           />
                         )}
                         {errors.district && <p className="text-sm text-destructive">{errors.district}</p>}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="area">Area *</Label>
-                        <Input
-                          id="area"
-                          name="area"
-                          value={formData.area}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Andheri West"
-                          className={errors.area ? "border-destructive" : ""}
-                          required
-                        />
-                        {errors.area && <p className="text-sm text-destructive">{errors.area}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pincode">PIN Code *</Label>
-                        <Input
-                          id="pincode"
-                          name="pincode"
-                          value={formData.pincode}
-                          onChange={handleInputChange}
-                          placeholder="400001"
-                          className={errors.pincode ? "border-destructive" : ""}
-                          required
-                        />
-                        {errors.pincode && <p className="text-sm text-destructive">{errors.pincode}</p>}
                       </div>
                     </div>
                   </div>

@@ -105,10 +105,6 @@ const Navbar = () => {
                 </span>
               </div>
             </Link>
-
-            {/* <div className="hidden md:block w-px h-8 bg-white/10"></div> */}
-
-            {/* <ModeToggle /> */}
           </div>
 
           {/* Center: Link Pills - Grid Centered */}

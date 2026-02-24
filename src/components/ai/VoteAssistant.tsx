@@ -249,7 +249,7 @@ INSTRUCTIONS:
             {!isOpen && (
                 <Button
                     onClick={() => setIsOpen(true)}
-                    className="h-14 w-14 rounded-full bg-primary/90 hover:bg-primary text-primary-foreground shadow-2xl hover:shadow-[0_0_20px_rgba(var(--primary),0.5)] transition-all duration-300 backdrop-blur-sm border border-white/10"
+                    className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-primary/90 hover:bg-primary text-primary-foreground shadow-2xl hover:shadow-[0_0_20px_rgba(var(--primary),0.5)] transition-all duration-300 backdrop-blur-sm border border-white/10 bottom-4 right-4 md:bottom-6 md:right-6"
                 >
                     <MessageCircle className="h-6 w-6" />
                 </Button>

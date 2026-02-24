@@ -97,127 +97,141 @@ const Contact = () => {
                 canonical="/contact"
             />
             <Navbar />
-            <main className="container mx-auto px-4 py-12 md:py-20">
+            <main className="container mx-auto px-4 py-8 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 <div className="max-w-5xl mx-auto">
-                    <div className="text-center space-y-4 mb-16">
-                        <h1 className="text-4xl md:text-5xl font-bold text-primary">Contact Us</h1>
-                        <p className="text-xl text-muted-foreground">
-                            We are here to assist you with any questions or support you need.
+                    <div className="text-center space-y-4 mb-12 md:mb-16">
+                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">Contact Us</h1>
+                        <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                            We are here to assist you with any questions or support you need during the voting process.
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-12">
+                    <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-start">
                         {/* Contact Information */}
-                        <div className="space-y-8">
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-bold">Get in Touch</h2>
-                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10">
-                                    <Mail className="w-6 h-6 text-primary mt-1" />
-                                    <div>
-                                        <h3 className="font-semibold mb-1">Email Support</h3>
-                                        <p className="text-sm text-muted-foreground mb-2">For general inquiries and support:</p>
-                                        <a href="mailto:support@shareholdervoting.in" className="text-primary hover:underline font-medium">support@shareholdervoting.in</a>
-                                        <br />
-                                        <a href="mailto:admin@shareholdervoting.in" className="text-primary hover:underline font-medium">admin@shareholdervoting.in</a>
+                        <div className="space-y-6 md:space-y-8">
+                            <h2 className="text-2xl font-bold text-white mb-6">Get in Touch</h2>
+
+                            <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-primary/30 transition-all group overflow-hidden relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="p-3 bg-primary/20 rounded-xl relative z-10 shrink-0">
+                                    <Mail className="w-6 h-6 text-primary" />
+                                </div>
+                                <div className="relative z-10 overflow-hidden w-full">
+                                    <h3 className="font-semibold mb-1 text-white">Email Support</h3>
+                                    <p className="text-xs md:text-sm text-slate-400 mb-2">For general inquiries and support:</p>
+                                    <div className="space-y-1">
+                                        <a href="mailto:support@shareholdervoting.in" className="text-sm md:text-base text-primary hover:underline font-medium block break-all">support@shareholdervoting.in</a>
+                                        <a href="mailto:admin@shareholdervoting.in" className="text-sm md:text-base text-primary hover:underline font-medium block break-all">admin@shareholdervoting.in</a>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10">
-                                    <Phone className="w-6 h-6 text-primary mt-1" />
-                                    <div>
-                                        <h3 className="font-semibold mb-1">Phone</h3>
-                                        <p className="text-sm text-muted-foreground mb-2">Mon-Fri from 9am to 6pm IST</p>
-                                        <a href="tel:+919876543210" className="text-primary hover:underline font-medium">+91-987654321</a>
-                                    </div>
+                            <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-secondary/30 transition-all group overflow-hidden relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="p-3 bg-secondary/20 rounded-xl relative z-10 shrink-0">
+                                    <Phone className="w-6 h-6 text-secondary" />
                                 </div>
+                                <div className="relative z-10">
+                                    <h3 className="font-semibold mb-1 text-white">Phone Support</h3>
+                                    <p className="text-xs md:text-sm text-slate-400 mb-1">Mon-Fri from 9am to 6pm IST</p>
+                                    <a href="tel:+919876543210" className="text-sm md:text-base text-secondary hover:underline font-medium">+91-9876543210</a>
+                                </div>
+                            </div>
 
-                                <div className="flex items-start gap-4 p-4 rounded-xl bg-card/10 backdrop-blur-md border border-white/10">
-                                    <MapPin className="w-6 h-6 text-primary mt-1" />
-                                    <div>
-                                        <h3 className="font-semibold mb-1">Office Address</h3>
-                                        <p className="text-sm text-muted-foreground">
-                                            Tech Hub, Financial District<br />
-                                            Mumbai, Maharashtra 400051<br />
-                                            India
-                                        </p>
-                                    </div>
+                            <div className="flex items-start gap-4 p-5 rounded-2xl bg-[#0d1b2a]/40 backdrop-blur-xl border border-white/10 hover:border-accent/30 transition-all group overflow-hidden relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="p-3 bg-accent/20 rounded-xl relative z-10 shrink-0">
+                                    <MapPin className="w-6 h-6 text-accent" />
+                                </div>
+                                <div className="relative z-10">
+                                    <h3 className="font-semibold mb-1 text-white">Office Location</h3>
+                                    <p className="text-xs md:text-sm text-slate-400 leading-relaxed italic">
+                                        Tech Hub, Financial District<br />
+                                        Mumbai, Maharashtra 400051, India
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Contact Form Placeholder */}
-                        <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-sm">
-                            <div className="flex items-center gap-3 mb-6">
-                                <MessageSquare className="w-6 h-6 text-secondary" />
-                                <h2 className="text-2xl font-bold">Send a Message</h2>
+                        {/* Contact Form */}
+                        <div className="bg-[#0d1b2a]/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative group overflow-hidden">
+                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-secondary/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
+
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-6 md:mb-8">
+                                    <div className="p-3 bg-secondary/20 rounded-xl">
+                                        <MessageSquare className="w-6 h-6 text-secondary" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white">Send a Message</h2>
+                                </div>
+                                <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label htmlFor="firstname" className="text-xs md:text-sm font-medium text-slate-300">First Name</label>
+                                            <input
+                                                type="text"
+                                                id="firstname"
+                                                required
+                                                className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
+                                                placeholder="John"
+                                                value={formData.firstname}
+                                                onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label htmlFor="lastname" className="text-xs md:text-sm font-medium text-slate-300">Last Name</label>
+                                            <input
+                                                type="text"
+                                                id="lastname"
+                                                required
+                                                className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
+                                                placeholder="Doe"
+                                                value={formData.lastname}
+                                                onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="email" className="text-xs md:text-sm font-medium text-slate-300">Email Address</label>
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            required
+                                            className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
+                                            placeholder="john@example.com"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="subject" className="text-xs md:text-sm font-medium text-slate-300">Subject</label>
+                                        <input
+                                            type="text"
+                                            id="subject"
+                                            required
+                                            className="w-full h-11 px-4 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all"
+                                            placeholder="How can we help?"
+                                            value={formData.subject}
+                                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="message" className="text-xs md:text-sm font-medium text-slate-300">Your Message</label>
+                                        <textarea
+                                            id="message"
+                                            rows={4}
+                                            required
+                                            className="w-full px-4 py-3 rounded-xl border border-white/10 bg-[#020817]/40 text-sm text-white focus:ring-2 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm transition-all resize-none"
+                                            placeholder="Tell us what you need..."
+                                            value={formData.message}
+                                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                        />
+                                    </div>
+                                    <Button className="w-full h-12 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-[0.98]" size="lg" disabled={isSubmitting}>
+                                        {isSubmitting ? "Sending..." : "Send Message"}
+                                    </Button>
+                                </form>
                             </div>
-                            <form className="space-y-4" onSubmit={handleSubmit}>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label htmlFor="firstname" className="text-sm font-medium">First Name</label>
-                                        <input
-                                            type="text"
-                                            id="firstname"
-                                            required
-                                            className="w-full p-2 rounded-md border border-input bg-background"
-                                            placeholder="John"
-                                            value={formData.firstname}
-                                            onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="lastname" className="text-sm font-medium">Last Name</label>
-                                        <input
-                                            type="text"
-                                            id="lastname"
-                                            required
-                                            className="w-full p-2 rounded-md border border-input bg-background"
-                                            placeholder="Doe"
-                                            value={formData.lastname}
-                                            onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="email" className="text-sm font-medium">Email</label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        required
-                                        className="w-full p-2 rounded-md border border-input bg-background"
-                                        placeholder="john@example.com"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                                    <input
-                                        type="text"
-                                        id="subject"
-                                        required
-                                        className="w-full p-2 rounded-md border border-input bg-background"
-                                        placeholder="How can we help?"
-                                        value={formData.subject}
-                                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="message" className="text-sm font-medium">Message</label>
-                                    <textarea
-                                        id="message"
-                                        rows={4}
-                                        required
-                                        className="w-full p-2 rounded-md border border-input bg-background"
-                                        placeholder="Your message..."
-                                        value={formData.message}
-                                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    />
-                                </div>
-                                <Button className="w-full" size="lg" disabled={isSubmitting}>
-                                    {isSubmitting ? "Sending Message..." : "Send Message"}
-                                </Button>
-                            </form>
                         </div>
                     </div>
                 </div>

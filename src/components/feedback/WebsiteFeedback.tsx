@@ -120,7 +120,7 @@ const WebsiteFeedback = () => {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button
-                    className="fixed bottom-6 left-6 rounded-full h-14 w-14 shadow-lg z-50 animate-in fade-in zoom-in hover:scale-110 transition-transform duration-200 bg-primary hover:bg-primary/90"
+                    className="fixed bottom-4 left-4 md:bottom-6 md:left-6 rounded-full h-12 w-12 md:h-14 md:w-14 shadow-lg z-50 animate-in fade-in zoom-in hover:scale-110 transition-transform duration-200 bg-primary hover:bg-primary/90"
                     size="icon"
                 >
                     <MessageSquare className="h-6 w-6" />

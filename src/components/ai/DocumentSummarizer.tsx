@@ -15,7 +15,11 @@ import mammoth from 'mammoth';
 import { createWorker } from 'tesseract.js';
 
 // Initialize PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Using a more robust worker initialization for Vite
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url
+).toString();
 
 export const DocumentSummarizer = () => {
     const [text, setText] = useState('');
@@ -44,40 +48,51 @@ export const DocumentSummarizer = () => {
             } else if (fileType.startsWith('image/')) {
                 extractedText = await extractTextFromImage(file);
             } else {
-                toast.error('Unsupported file type. Please upload PDF, Word, or Image.');
+                toast.error(`Unsupported file type: ${fileType}. Please upload PDF, Word, or Image.`);
                 setActiveFile(null);
                 setIsExtracting(false);
                 return;
             }
 
-            if (extractedText.trim()) {
+            if (extractedText && extractedText.trim()) {
                 setText(extractedText);
                 toast.success('Text extracted successfully!');
-                // Auto-trigger summarization
                 handleSummarize(extractedText);
             } else {
-                toast.error('No text could be extracted from this file.');
+                console.warn('Extraction completed but no text found.');
+                toast.error('No readable text found in this file.');
             }
-        } catch (error) {
-            console.error('Extraction Error:', error);
-            toast.error('Failed to extract text from file.');
+        } catch (error: any) {
+            console.error('Extraction Error Details:', error);
+            const errorMessage = error?.message || 'Check if the file is encrypted or corrupted.';
+            toast.error(`Failed to extract text: ${errorMessage}`);
         } finally {
             setIsExtracting(false);
         }
     };
 
     const extractTextFromPDF = async (file: File): Promise<string> => {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+            let fullText = '';
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            const pageText = content.items.map((item: any) => item.str).join(' ');
-            fullText += pageText + '\n';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                // Handle different item types and ensure we get a string
+                const pageText = content.items
+                    .map((item: any) => item.str || '')
+                    .filter((str: string) => str.trim().length > 0)
+                    .join(' ');
+                fullText += pageText + '\n';
+            }
+            return fullText;
+        } catch (err: any) {
+            console.error('PDF.js Error:', err);
+            throw new Error(`PDF Error: ${err.message || 'Worker initialization failed'}`);
         }
-        return fullText;
     };
 
     const extractTextFromWord = async (file: File): Promise<string> => {

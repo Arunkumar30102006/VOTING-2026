@@ -444,10 +444,12 @@ const CompanyDashboard = () => {
         throw error;
       }
 
-      // 4. Delete Auth User (New Step: Allow reuse of email)
+      // 4. Delete Auth User (Allow reuse of email)
+      // Get the current session to pass the JWT token
+      const { data: { session } } = await supabase.auth.getSession();
       const { error: deleteAccError } = await supabase.functions.invoke("delete-account", {
         headers: {
-          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+          "Authorization": `Bearer ${session?.access_token}`
         }
       });
       if (deleteAccError) {

@@ -215,63 +215,64 @@ const CompanyDashboard = () => {
       const { loginId, password } = generateSecureCredentials();
       const passwordHash = await hashPassword(password);
 
-      // Insert shareholder
-      const { data: newShareholder, error } = await supabase
-        .from("shareholders")
-        .insert({
-          company_id: company.id,
-          shareholder_name: validatedData.name,
-          email: validatedData.email,
-          phone: validatedData.phone || null,
-          shares_held: validatedData.sharesHeld,
-          login_id: loginId,
-          password_hash: passwordHash,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        if (error.code === "23505") {
-          toast.error("A shareholder with this login ID already exists");
-        } else {
-          toast.error("Failed to add shareholder");
-        }
-        setIsAddingShareholder(false);
-        return;
-      }
-
-      // Send credentials via Supabase Edge Function
+      // Parallelize DB insertion and Email sending
       try {
-        const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
-          body: {
-            shareholderEmail: validatedData.email,
-            shareholderName: validatedData.name,
-            companyName: company.company_name,
-            loginId: loginId,
-            password: password,
-          },
-          headers: {
-            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+        const [insertResult, emailResult] = await Promise.all([
+          supabase
+            .from("shareholders")
+            .insert({
+              company_id: company.id,
+              shareholder_name: validatedData.name,
+              email: validatedData.email,
+              phone: validatedData.phone || null,
+              shares_held: validatedData.sharesHeld,
+              login_id: loginId,
+              password_hash: passwordHash,
+            })
+            .select()
+            .single(),
+
+          supabase.functions.invoke('send-shareholder-credentials', {
+            body: {
+              shareholderEmail: validatedData.email,
+              shareholderName: validatedData.name,
+              companyName: company.company_name,
+              loginId: loginId,
+              password: password,
+            },
+            headers: {
+              "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+            }
+          })
+        ]);
+
+        if (insertResult.error) {
+          if (insertResult.error.code === "23505") {
+            toast.error("A shareholder with this login ID already exists");
+          } else {
+            toast.error("Failed to add shareholder");
           }
-        });
+          setIsAddingShareholder(false);
+          return;
+        }
 
-        if (emailError) throw emailError;
-
-        toast.success("Shareholder added and credentials sent via email!");
-      } catch (emailError: any) {
-        console.error("Email failed:", emailError);
-        const msg = emailError.message || "";
-
-        // Graceful fallback is less needed now, but good to keep the manual method option if email fails completely
-        toast.success("Shareholder added! IMPORTANT: Save these credentials:", {
-          description: `User ID: ${loginId} | Password: ${password}`,
-          duration: 30000,
-          action: {
-            label: "Copy",
-            onClick: () => navigator.clipboard.writeText(`ID: ${loginId}\nPassword: ${password}`)
-          }
-        });
-        toast.warning("Email sending service encountered an issue. Please manually share the credentials.");
+        if (emailResult.error) {
+          console.error("Email failed:", emailResult.error);
+          toast.success("Shareholder added! IMPORTANT: Save these credentials:", {
+            description: `User ID: ${loginId} | Password: ${password}`,
+            duration: 30000,
+            action: {
+              label: "Copy",
+              onClick: () => navigator.clipboard.writeText(`ID: ${loginId}\nPassword: ${password}`)
+            }
+          });
+          toast.warning("Email sending service encountered an issue. Please manually share the credentials.");
+        } else {
+          toast.success("Shareholder added and credentials sent via email!");
+        }
+      } catch (err: any) {
+        console.error("Operation failed:", err);
+        toast.error("An error occurred while adding the shareholder.");
       }
 
       // Reset form and reload
@@ -304,39 +305,44 @@ const CompanyDashboard = () => {
       const { loginId, password } = generateSecureCredentials();
       const passwordHash = await hashPassword(password);
 
-      // Update shareholder with new credentials
-      const { error: updateError } = await supabase
-        .from("shareholders")
-        .update({
-          login_id: loginId,
-          password_hash: passwordHash,
-          is_credential_used: false,
-          credential_created_at: new Date().toISOString(),
-        })
-        .eq("id", shareholder.id);
+      // Parallelize update and email sending
+      const [updateResult, emailResult] = await Promise.all([
+        supabase
+          .from("shareholders")
+          .update({
+            login_id: loginId,
+            password_hash: passwordHash,
+            is_credential_used: false,
+            credential_created_at: new Date().toISOString(),
+          })
+          .eq("id", shareholder.id),
 
-      if (updateError) {
+        supabase.functions.invoke('send-shareholder-credentials', {
+          body: {
+            shareholderEmail: shareholder.email,
+            shareholderName: shareholder.shareholder_name,
+            companyName: company?.company_name,
+            loginId: loginId,
+            password: password,
+          },
+          headers: {
+            "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+          }
+        })
+      ]);
+
+      if (updateResult.error) {
         toast.error("Failed to regenerate credentials");
         return;
       }
 
-      // Send new credentials via Supabase Edge Function
-      const { error: emailError } = await supabase.functions.invoke('send-shareholder-credentials', {
-        body: {
-          shareholderEmail: shareholder.email,
-          shareholderName: shareholder.shareholder_name,
-          companyName: company?.company_name,
-          loginId: loginId,
-          password: password,
-        },
-        headers: {
-          "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
-        }
-      });
+      if (emailResult.error) {
+        console.error("Resend failed:", emailResult.error);
+        toast.error(`Email failed: ${emailResult.error.message || "Unknown error"}`);
+      } else {
+        toast.success("New credentials sent successfully!");
+      }
 
-      if (emailError) throw emailError;
-
-      toast.success("New credentials sent successfully!");
       if (company) await loadShareholders(company.id);
 
     } catch (error: any) {

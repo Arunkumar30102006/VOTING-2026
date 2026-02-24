@@ -47,6 +47,22 @@ const ShareholderLogin = () => {
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   };
 
+  const warmEdgeFunction = async () => {
+    try {
+      // Trigger a preflight request to wake up the edge function (mitigate cold starts)
+      await fetch(`${env.VITE_SUPABASE_URL}/functions/v1/send-shareholder-otp-email`, {
+        method: "OPTIONS",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": env.VITE_SUPABASE_ANON_KEY
+        }
+      });
+      console.log("OTP function warmed up");
+    } catch (err) {
+      // Silently fail as this is just an optimization
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -269,6 +285,7 @@ const ShareholderLogin = () => {
                               name="userId"
                               value={formData.userId}
                               onChange={handleInputChange}
+                              onFocus={warmEdgeFunction}
                               placeholder="Enter your User ID"
                               className="pl-11"
                               required
@@ -289,6 +306,7 @@ const ShareholderLogin = () => {
                               type={showPassword ? "text" : "password"}
                               value={formData.password}
                               onChange={handleInputChange}
+                              onFocus={warmEdgeFunction}
                               placeholder="Enter your password"
                               className="pl-11 pr-11"
                               required
@@ -328,7 +346,7 @@ const ShareholderLogin = () => {
                         {isLoading ? (
                           <>
                             <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                            Verifying...
+                            Securely Verifying...
                           </>
                         ) : (
                           <>

@@ -107,6 +107,22 @@ const CompanyRegister = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  const warmEdgeFunction = async () => {
+    try {
+      // Trigger a preflight request to wake up the edge function (mitigate cold starts)
+      await fetch(`${env.VITE_SUPABASE_URL}/functions/v1/send-email-otp`, {
+        method: "OPTIONS",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": env.VITE_SUPABASE_ANON_KEY
+        }
+      });
+      console.log("OTP function warmed up");
+    } catch (err) {
+      // Silently fail as this is just an optimization
+    }
+  };
+
   const validateStep1 = () => {
     try {
       step1Schema.parse({
@@ -664,6 +680,7 @@ const CompanyRegister = () => {
                           type="email"
                           value={formData.contactEmail}
                           onChange={handleInputChange}
+                          onFocus={warmEdgeFunction}
                           placeholder="admin@company.com"
                           className={`pl-11 ${errors.contactEmail ? "border-destructive" : ""}`}
                           required
@@ -831,9 +848,17 @@ const CompanyRegister = () => {
 
                   {step < 3 ? (
                     <Button type="button" variant="saffron" onClick={nextStep} className="gap-2" disabled={isLoading}>
-                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                      {step === 2 ? "Verify Email" : "Next Step"}
-                      <ArrowRight className="w-4 h-4" />
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {step === 2 ? "Securely Sending OTP..." : "Verifying..."}
+                        </>
+                      ) : (
+                        <>
+                          {step === 2 ? "Verify Email" : "Next Step"}
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
                     </Button>
                   ) : (
                     <Button type="submit" variant="hero" className="gap-2" disabled={isLoading}>

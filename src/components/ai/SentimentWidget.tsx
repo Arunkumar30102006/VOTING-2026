@@ -16,20 +16,10 @@ interface SentimentResult {
     summary: string;
 }
 
-export const SentimentWidget = ({ feedbackText }: { feedbackText: string }) => {
+export const SentimentWidget = ({ feedbackText, onResult }: { feedbackText: string, onResult?: (result: SentimentResult) => void }) => {
     const [result, setResult] = useState<SentimentResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-
-    useEffect(() => {
-        const handleRequest = (e: any) => {
-            if (result && e.detail?.callback) {
-                e.detail.callback(result);
-            }
-        };
-        window.addEventListener('requestSentimentData', handleRequest);
-        return () => window.removeEventListener('requestSentimentData', handleRequest);
-    }, [result]);
 
     useEffect(() => {
         const analyzeSentiment = async () => {
@@ -46,6 +36,7 @@ export const SentimentWidget = ({ feedbackText }: { feedbackText: string }) => {
 
                 if (error) throw error;
                 setResult(data.result);
+                if (onResult) onResult(data.result);
             } catch (error) {
                 console.error('Error analyzing sentiment:', error);
             } finally {

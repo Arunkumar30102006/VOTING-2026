@@ -2,73 +2,69 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
-    // Handle CORS preflight requests
-    if (req.method === "OPTIONS") {
-        return new Response(null, { headers: corsHeaders });
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { shareholder_id, email, name } = await req.json();
+
+    if (!shareholder_id || !email) {
+      throw new Error("Missing shareholder_id or email");
     }
 
-    try {
-        const { shareholder_id, email, name } = await req.json();
+    console.log(`Generating OTP for shareholder: ${shareholder_id}, email: ${email}`);
 
-        if (!shareholder_id || !email) {
-            throw new Error("Missing shareholder_id or email");
-        }
+    // 1. Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        console.log(`Generating OTP for shareholder: ${shareholder_id}, email: ${email}`);
+    // 2. Hash the OTP for storage
+    const encoder = new TextEncoder();
+    const data = encoder.encode(otp);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const otpHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 
-        // 1. Generate 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // 3. Store OTP and Expiry in Database
+    // Note: We need the SERVICE_ROLE_KEY to bypass potential RLS if the user isn't fully logged in yet,
+    // though usually for initial login logic we might use anon if policies allow, but admin is safer for updates.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
 
-        // 2. Hash the OTP for storage
-        const encoder = new TextEncoder();
-        const data = encoder.encode(otp);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const otpHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not set");
+    }
 
-        // 3. Store OTP and Expiry in Database
-        // Note: We need the SERVICE_ROLE_KEY to bypass potential RLS if the user isn't fully logged in yet,
-        // though usually for initial login logic we might use anon if policies allow, but admin is safer for updates.
-        const supabaseAdmin = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-        );
+    // Parallelize Database update and Email sending
+    const [updateResult, emailResponse] = await Promise.all([
+      supabaseAdmin
+        .from("shareholders")
+        .update({
+          otp_code: otpHash,
+          otp_expiry: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        })
+        .eq("id", shareholder_id),
 
-        const { error: updateError } = await supabaseAdmin
-            .from("shareholders")
-            .update({
-                otp_code: otpHash,
-                otp_expiry: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes validity
-            })
-            .eq("id", shareholder_id);
-
-        if (updateError) {
-            console.error("Database update error:", updateError);
-            throw new Error("Failed to store OTP");
-        }
-
-        // 4. Send Email via Resend
-        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-        if (!RESEND_API_KEY) {
-            throw new Error("RESEND_API_KEY is not set");
-        }
-
-        const res = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-                from: "Vote India <admin@shareholdervoting.in>", // Using consistent sender
-                to: [email],
-                subject: "Your Secure Login OTP",
-                html: `
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Vote India <admin@shareholdervoting.in>",
+          to: [email],
+          subject: "Your Secure Login OTP",
+          html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -112,27 +108,33 @@ serve(async (req) => {
 </body>
 </html>
                 `,
-            }),
-        });
+        }),
+      })
+    ]);
 
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error("Resend API Error:", errorText);
-            throw new Error(`Email sending failed: ${errorText}`);
-        }
-
-        const resData = await res.json();
-        console.log("Email sent successfully:", resData);
-
-        return new Response(
-            JSON.stringify({ success: true, message: "OTP sent via email" }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-    } catch (error: any) {
-        console.error(error);
-        return new Response(
-            JSON.stringify({ success: false, message: error.message }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    if (updateResult.error) {
+      console.error("Database update error:", updateResult.error);
+      throw new Error(`Failed to store OTP: ${updateResult.error.message}`);
     }
+
+    if (!emailResponse.ok) {
+      const errorText = await emailResponse.text();
+      console.error("Resend API Error:", errorText);
+      throw new Error(`Email sending failed: ${errorText}`);
+    }
+
+    const resData = await emailResponse.json();
+    console.log("OTP generated and email sent successfully:", resData);
+
+    return new Response(
+      JSON.stringify({ success: true, message: "OTP sent via email" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error: any) {
+    console.error(error);
+    return new Response(
+      JSON.stringify({ success: false, message: error.message }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 });

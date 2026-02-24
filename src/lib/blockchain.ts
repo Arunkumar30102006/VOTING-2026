@@ -20,9 +20,9 @@ export const generateVoteHash = async (
 };
 
 // Simulate a blockchain transaction (Polygon Amoy Testnet)
-export const simulateBlockchainTransaction = async (): Promise<string> => {
+export const simulateBlockchainTransaction = async (delayMs: number = 800): Promise<string> => {
     // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
 
     // Generate a random mock transaction hash
     const randomBytes = new Uint8Array(32);

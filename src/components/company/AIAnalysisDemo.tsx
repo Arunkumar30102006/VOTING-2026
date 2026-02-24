@@ -12,6 +12,7 @@ export const AIAnalysisDemo = () => {
     const [text, setText] = useState("");
     const [analyzeText, setAnalyzeText] = useState("");
     const [sessionId, setSessionId] = useState<string | null>(null);
+    const [analysisResult, setAnalysisResult] = useState<any>(null);
     const [isAddingToLive, setIsAddingToLive] = useState(false);
 
     useEffect(() => {
@@ -28,9 +29,9 @@ export const AIAnalysisDemo = () => {
         fetchSession();
     }, []);
 
-    const handlePushToLive = async (result: any) => {
-        if (!sessionId) {
-            toast.error("No active voting session found to link feedback.");
+    const handlePushToLive = async () => {
+        if (!sessionId || !analysisResult) {
+            toast.error("No active voting session or analysis result found.");
             return;
         }
 
@@ -39,9 +40,9 @@ export const AIAnalysisDemo = () => {
             await votingApi.submitFeedback({
                 session_id: sessionId,
                 content: analyzeText,
-                sentiment_label: result.sentiment,
-                sentiment_score: result.score,
-                themes: result.themes || [],
+                sentiment_label: analysisResult.sentiment,
+                sentiment_score: analysisResult.score,
+                themes: analysisResult.themes || [],
             });
             toast.success("Added to Live Stream!");
         } catch (error) {
@@ -61,7 +62,10 @@ export const AIAnalysisDemo = () => {
                 onChange={(e) => setText(e.target.value)}
             />
             <Button
-                onClick={() => setAnalyzeText(text)}
+                onClick={() => {
+                    setAnalyzeText(text);
+                    setAnalysisResult(null); // Reset for new analysis
+                }}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
                 disabled={!text.trim()}
             >
@@ -71,19 +75,14 @@ export const AIAnalysisDemo = () => {
 
             {analyzeText && (
                 <div className="mt-4 pt-4 space-y-4">
-                    <SentimentWidget feedbackText={analyzeText} />
+                    <SentimentWidget feedbackText={analyzeText} onResult={setAnalysisResult} />
 
                     <Button
                         variant="outline"
                         size="sm"
                         className="w-full border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50"
-                        onClick={() => {
-                            // This is a bit of a hack since SentimentWidget doesn't expose data yet.
-                            // I'll modify SentimentWidget next to accept an onResult callback.
-                            const event = new CustomEvent('requestSentimentData', { detail: { callback: handlePushToLive } });
-                            window.dispatchEvent(event);
-                        }}
-                        disabled={isAddingToLive}
+                        onClick={handlePushToLive}
+                        disabled={isAddingToLive || !analysisResult}
                     >
                         {isAddingToLive ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
                         Push to Live Feedback Stream (Demo)

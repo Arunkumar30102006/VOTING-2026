@@ -39,29 +39,27 @@ serve(async (req) => {
     // 1. Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 2. Store in DB
-    const { error: dbError } = await supabase
-      .from("verification_codes")
-      .upsert({
-        email: email.toLowerCase(),
-        code: otp, // Storing plain text for simplicity in this demo, ideally hash it
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 mins
-      });
+    // 2. Parallelize DB storage and Email sending
+    const [dbResult, emailResponse] = await Promise.all([
+      supabase
+        .from("verification_codes")
+        .upsert({
+          email: email.toLowerCase(),
+          code: otp,
+          expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        }),
 
-    if (dbError) throw dbError;
-
-    // 3. Send Email
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Vote India <admin@shareholdervoting.in>", // Or your verified domain
-        to: [email],
-        subject: "Company Registration Verification Code",
-        html: `
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Vote India <admin@shareholdervoting.in>",
+          to: [email],
+          subject: "Company Registration Verification Code",
+          html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -109,11 +107,14 @@ serve(async (req) => {
 </body>
 </html>
         `,
-      }),
-    });
+        }),
+      })
+    ]);
 
-    if (!res.ok) {
-      const text = await res.text();
+    if (dbResult.error) throw dbResult.error;
+
+    if (!emailResponse.ok) {
+      const text = await emailResponse.text();
       console.error("Resend API Error:", text);
       throw new Error(`Resend Error: ${text}`);
     }

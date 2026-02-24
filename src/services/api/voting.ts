@@ -64,7 +64,7 @@ export const votingApi = {
         if (resolutionIds.length === 0) return [];
 
         const { data, error } = await supabase
-            .from("vote_stats_mat")
+            .from("vote_stats")
             .select("*")
             .in("resolution_id", resolutionIds);
 

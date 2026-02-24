@@ -84,9 +84,10 @@ export const AdminVotingResults = ({ sessionId, companyName }: AdminVotingResult
                         const updatedStat = { ...currentStat };
                         updatedStat.total_votes += 1;
 
-                        if (newVote.vote_value === 'FOR') updatedStat.for_count += 1;
-                        else if (newVote.vote_value === 'AGAINST') updatedStat.against_count += 1;
-                        else if (newVote.vote_value === 'ABSTAIN') updatedStat.abstain_count += 1;
+                        const voteValue = newVote.vote_value.toUpperCase();
+                        if (voteValue === 'FOR') updatedStat.for_count += 1;
+                        else if (voteValue === 'AGAINST') updatedStat.against_count += 1;
+                        else if (voteValue === 'ABSTAIN') updatedStat.abstain_count += 1;
 
                         return {
                             ...prevStats,

@@ -12,53 +12,51 @@ const DataProtection = () => {
                 canonical="/data-protection"
             />
             <Navbar />
-            <div className="container mx-auto px-4 py-24 md:py-32 max-w-4xl">
+            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 max-w-4xl">
                 <div className="bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-8">Data Protection Measures</h1>
-                    <p className="text-lg text-muted-foreground mb-12">
-                        Security is the core of our platform. We employ defense-in-depth strategies to ensure your data remains confidential,
-                        integral, and available.
+                    <h1 className="text-2xl md:text-3xl font-bold mb-6">Data Protection & Sovereignty</h1>
+                    <p className="text-sm md:text-base text-muted-foreground mb-10 leading-relaxed">
+                        Your corporate data is a strategic asset. We ensure its absolute protection through indigenous hosting and advanced cryptographic standards.
                     </p>
 
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="p-6 rounded-2xl bg-card/10 border border-white/10 backdrop-blur-md">
-                            <Lock className="w-10 h-10 text-secondary mb-4" />
-                            <h3 className="text-xl font-bold mb-2">Encryption</h3>
-                            <p className="text-foreground/80">
+                            <Lock className="w-8 h-8 text-secondary mb-3" />
+                            <h3 className="text-lg font-bold mb-2">Encryption</h3>
+                            <p className="text-sm md:text-base text-foreground/80 leading-relaxed">
                                 All data in transit is encrypted using TLS 1.3. Data at rest is encrypted with AES-256 standards,
                                 ensuring that even in the unlikely event of a breach, data remains unreadable.
                             </p>
                         </div>
 
                         <div className="p-6 rounded-2xl bg-card/10 border border-white/10 backdrop-blur-md">
-                            <Server className="w-10 h-10 text-secondary mb-4" />
-                            <h3 className="text-xl font-bold mb-2">Data Localization</h3>
-                            <p className="text-foreground/80">
-                                All user data is stored exclusively on secure servers located within India, complying with data localization
-                                mandates for financial and sensitive personal data.
+                            <Server className="w-8 h-8 text-secondary mb-3" />
+                            <h3 className="text-lg font-bold mb-2">Digital Sovereignty</h3>
+                            <p className="text-sm md:text-base text-foreground/80 leading-relaxed">
+                                All data is processed and stored exclusively on Tier-4 data centers within Indian territory, ensuring zero cross-border data flow in compliance with national security guidelines.
                             </p>
                         </div>
 
                         <div className="p-6 rounded-2xl bg-card/10 border border-white/10 backdrop-blur-md">
-                            <ShieldCheck className="w-10 h-10 text-secondary mb-4" />
-                            <h3 className="text-xl font-bold mb-2">Regular Audits</h3>
-                            <p className="text-foreground/80">
+                            <ShieldCheck className="w-8 h-8 text-secondary mb-3" />
+                            <h3 className="text-lg font-bold mb-2">Regular Audits</h3>
+                            <p className="text-sm md:text-base text-foreground/80 leading-relaxed">
                                 We conduct regular Vulnerability Assessment and Penetration Testing (VAPT) by CERT-In empaneled auditors
                                 to identify and patch potential security weaknesses.
                             </p>
                         </div>
 
                         <div className="p-6 rounded-2xl bg-card/10 border border-white/10 backdrop-blur-md">
-                            <Key className="w-10 h-10 text-secondary mb-4" />
-                            <h3 className="text-xl font-bold mb-2">Access Control</h3>
-                            <p className="text-foreground/80">
+                            <Key className="w-8 h-8 text-secondary mb-3" />
+                            <h3 className="text-lg font-bold mb-2">Access Control</h3>
+                            <p className="text-sm md:text-base text-foreground/80 leading-relaxed">
                                 Strict Role-Based Access Control (RBAC) ensures that only authorized personnel have access to specific system components.
                                 MFA is mandatory for all administrative access.
                             </p>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
             <Footer />
         </div>
     );

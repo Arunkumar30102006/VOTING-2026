@@ -12,15 +12,15 @@ const About = () => {
                 canonical="/about"
             />
             <Navbar />
-            <main className="container mx-auto px-4 py-8 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 <div className="max-w-4xl mx-auto space-y-12">
                     {/* Hero Section */}
                     <div className="text-center space-y-4 md:space-y-6">
-                        <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
+                        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white">
                             About <span className="text-primary italic">ShareholderVoting.in</span>
                         </h1>
-                        <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
-                            Empowering shareholders with secure, transparent, and accessible digital governance solutions built for the future.
+                        <p className="text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                            We are India's premier digital infrastructure provider for corporate democracy, bridging the gap between companies and their stakeholders through secure, transparent, and technology-driven governance solutions.
                         </p>
                     </div>
 
@@ -52,8 +52,8 @@ const About = () => {
                     {/* Core Values */}
                     <div className="space-y-8 mt-16 md:mt-24">
                         <div className="text-center space-y-2">
-                            <h2 className="text-2xl md:text-3xl font-bold text-white">Our Core Values</h2>
-                            <div className="w-12 h-1 bg-primary mx-auto rounded-full" />
+                            <h2 className="text-xl md:text-2xl font-bold text-white">Our Core Values</h2>
+                            <div className="w-10 h-1 bg-primary mx-auto rounded-full" />
                         </div>
                         <div className="grid md:grid-cols-3 gap-6">
                             <div className="text-center p-6 bg-[#0d1b2a]/30 backdrop-blur-lg border border-white/5 rounded-2xl hover:bg-[#0d1b2a]/50 transition-colors group">

@@ -12,18 +12,18 @@ const Security = () => {
                 canonical="/security"
             />
             <Navbar />
-            <main className="container mx-auto px-4 py-8 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
                     {/* Hero Section */}
                     <div className="text-center space-y-4 md:space-y-6">
-                        <div className="inline-block p-3 rounded-full bg-primary/20 mb-2 md:mb-4 animate-pulse">
-                            <Shield className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+                        <div className="inline-block p-2.5 rounded-full bg-primary/20 mb-2 md:mb-4 animate-pulse">
+                            <Shield className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                         </div>
-                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
+                        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white">
                             Bank-Grade Security Architecture
                         </h1>
-                        <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
-                            ShareholderVoting.in is built on a foundation of zero-trust security principles. We protect your corporate data with the same standards used by leading financial institutions.
+                        <p className="text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                            ShareholderVoting.in is architected with a security-first mindset, utilizing zero-trust principles and multi-layered defense strategies to protect the sanctity of every vote.
                         </p>
                     </div>
 
@@ -59,7 +59,9 @@ const Security = () => {
 
                         <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center relative z-10">
                             <div className="space-y-4 md:space-y-6">
-                                <h2 className="text-2xl md:text-3xl font-bold text-white">Resilient Infrastructure</h2>
+                                <h2 className="text-lg md:text-xl font-bold text-white">
+                                    Resilient Infrastructure
+                                </h2>
                                 <p className="text-sm md:text-base text-slate-400 leading-relaxed">
                                     Our platform is hosted on enterprise-grade cloud infrastructure with 99.9% uptime SLAs. We utilize multi-zone redundancy to ensure your voting events are never interrupted.
                                 </p>

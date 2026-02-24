@@ -97,12 +97,12 @@ const Contact = () => {
                 canonical="/contact"
             />
             <Navbar />
-            <main className="container mx-auto px-4 py-8 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 <div className="max-w-5xl mx-auto">
-                    <div className="text-center space-y-4 mb-12 md:mb-16">
-                        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">Contact Us</h1>
-                        <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-                            We are here to assist you with any questions or support you need during the voting process.
+                    <div className="text-center space-y-3 mb-12 md:mb-16">
+                        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-white">Contact Us</h1>
+                        <p className="text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+                            Our team of compliance and technical experts is available to assist your organization with digital polling and governance requirements.
                         </p>
                     </div>
 
@@ -162,7 +162,8 @@ const Contact = () => {
                                     <div className="p-3 bg-secondary/20 rounded-xl">
                                         <MessageSquare className="w-6 h-6 text-secondary" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-white">Send a Message</h2>
+                                    <h2 className="text-lg md:text-xl font-bold text-white">
+                                        Send a Message</h2>
                                 </div>
                                 <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                                     <div className="grid sm:grid-cols-2 gap-4">

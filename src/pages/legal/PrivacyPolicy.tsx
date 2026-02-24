@@ -12,33 +12,33 @@ const PrivacyPolicy = () => {
                 canonical="/privacy-policy"
             />
             <Navbar />
-            <main className="container mx-auto px-4 py-12 md:py-20 max-w-4xl">
+            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 max-w-4xl">
                 <div className="space-y-8 bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">
-                    <div className="text-center space-y-4 border-b border-white/10 pb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-primary">Privacy Policy</h1>
-                        <p className="text-muted-foreground">Last Updated: January 22, 2026</p>
+                    <div className="text-center space-y-3 border-b border-white/10 pb-6">
+                        <h1 className="text-2xl md:text-3xl font-bold text-primary">Privacy Policy</h1>
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Last Updated: February 24, 2026</p>
                     </div>
 
                     <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-primary" />
                                 1. Introduction
                             </h2>
-                            <p className="text-muted-foreground">
-                                ShareholderVoting.in ("we", "our", or "us") is committed to protecting the privacy and security of your personal information. This Privacy Policy outlines how we collect, use, process, and safeguard your data when you use our platform for corporate voting and governance activities. By accessing or using our services, you consent to the practices described in this policy.
+                            <p className="text-sm md:text-base text-muted-foreground">
+                                ShareholderVoting.in is committed to protecting your privacy in alignment with the <span className="text-primary italic">Digital Personal Data Protection (DPDP) Act, 2023</span>. This policy outlines our data processing practices for corporate governance services.
                             </p>
                         </section>
 
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-primary" />
                                 2. Information We Collect
                             </h2>
                             <p className="text-muted-foreground mb-4">
                                 We collect information necessary to provide secure and compliant voting services:
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
                                 <li><strong>Identity Data:</strong> Name, Shareholder ID/Folio Number, Email address, Phone number.</li>
                                 <li><strong>Corporate Data:</strong> Company details, Director nominations, Meeting agendas.</li>
                                 <li><strong>Voting Data:</strong> Records of votes cast (encrypted and anonymized where applicable for results).</li>
@@ -47,14 +47,14 @@ const PrivacyPolicy = () => {
                         </section>
 
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Eye className="w-5 h-5 text-primary" />
                                 3. How We Use Your Information
                             </h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 Your data is used strictly for:
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
                                 <li>Facilitating secure and verifiable shareholder voting.</li>
                                 <li>Verifying user identity and preventing fraud.</li>
                                 <li>Communicating critical voting events (meeting notices, OTPs).</li>
@@ -63,21 +63,21 @@ const PrivacyPolicy = () => {
                         </section>
 
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Lock className="w-5 h-5 text-primary" />
                                 4. Data Security
                             </h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 We employ industry-standard security measures, including 256-bit SSL encryption, secure server infrastructure, and strict access controls. While we strive to protect your data, no method of transmission over the internet is 100% secure.
                             </p>
                         </section>
 
                         <section>
                             <h2 className="text-xl font-semibold">5. Data Sharing and Disclosure</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 We do not sell your personal data. We may share information with:
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
                                 <li><strong>Regulatory Authorities:</strong> If required by law (e.g., SEBI, MCA courts).</li>
                                 <li><strong>Service Providers:</strong> IT infrastructure providers who are bound by confidentiality agreements.</li>
                                 <li><strong>The Concerned Company:</strong> To report voting results as per legal requirements (identity may be redacted depending on poll type).</li>
@@ -86,14 +86,14 @@ const PrivacyPolicy = () => {
 
                         <section>
                             <h2 className="text-xl font-semibold">6. Your Rights</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 You have the right to request access to your personal data, correct inaccuracies, or request deletion (subject to legal retention requirements for voting records).
                             </p>
                         </section>
 
                         <section>
                             <h2 className="text-xl font-semibold">7. Contact Us</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 For privacy-related concerns, please contact our Data Protection Officer at: <a href="mailto:privacy@shareholdervoting.in" className="text-primary hover:underline">privacy@shareholdervoting.in</a>
                             </p>
                         </section>

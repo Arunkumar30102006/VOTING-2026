@@ -12,11 +12,11 @@ const TermsOfService = () => {
                 canonical="/terms-of-service"
             />
             <Navbar />
-            <main className="container mx-auto px-4 py-12 md:py-20 max-w-4xl">
+            <main className="container mx-auto px-4 pt-28 pb-12 md:py-20 max-w-4xl">
                 <div className="space-y-8 bg-card/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8 shadow-large">
-                    <div className="text-center space-y-4 border-b border-white/10 pb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-primary">Terms of Service</h1>
-                        <p className="text-muted-foreground">Effective Date: January 22, 2026</p>
+                    <div className="text-center space-y-3 border-b border-white/10 pb-6">
+                        <h1 className="text-2xl md:text-3xl font-bold text-primary">Terms of Service</h1>
+                        <p className="text-muted-foreground text-xs uppercase tracking-wider font-medium">Effective Date: February 24, 2026</p>
                     </div>
 
                     <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
@@ -29,24 +29,24 @@ const TermsOfService = () => {
                         </div>
 
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <Gavel className="w-5 h-5 text-primary" />
                                 1. Acceptance of Terms
                             </h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 By accessing or using the ShareholderVoting.in website and services, you agree to be bound by these Terms of Service. If you do not agree, strictly do not use our services.
                             </p>
                         </section>
 
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <FileCheck className="w-5 h-5 text-primary" />
                                 2. Services Provided
                             </h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 ShareholderVoting.in provides a Software-as-a-Service (SaaS) platform for:
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
                                 <li>Company registration and dashboard management.</li>
                                 <li>Shareholder and director nomination management.</li>
                                 <li>Electronic voting facilitation.</li>
@@ -57,11 +57,11 @@ const TermsOfService = () => {
                         </section>
 
                         <section>
-                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
                                 <AlertTriangle className="w-5 h-5 text-primary" />
                                 3. User Responsibilities
                             </h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 <strong>Companies:</strong> Are responsible for the accuracy of shareholder data, meeting notices, and compliance with applicable laws (e.g., Companies Act, 2013).<br />
                                 <strong>Shareholders:</strong> Are responsible for maintaining the confidentiality of their login credentials and voting securely.
                             </p>
@@ -69,10 +69,10 @@ const TermsOfService = () => {
 
                         <section>
                             <h2 className="text-xl font-semibold">4. Limitation of Liability</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 To the fullest extent permitted by law, ShareholderVoting.in shall not be liable for any indirect, incidental, special, or consequential damages arising out of:
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <ul className="list-disc pl-6 space-y-1.5 text-sm md:text-base text-muted-foreground">
                                 <li>Service interruptions or technical failures.</li>
                                 <li>Inaccurate data provided by companies.</li>
                                 <li>Unauthorized access due to user negligence.</li>
@@ -81,21 +81,21 @@ const TermsOfService = () => {
 
                         <section>
                             <h2 className="text-xl font-semibold">5. Account Termination</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activity, or compromise the security of the platform.
                             </p>
                         </section>
 
                         <section>
                             <h2 className="text-xl font-semibold">6. Governing Law</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 These terms are governed by the laws of India. Any disputes are subject to the exclusive jurisdiction of the courts in Mumbai, Maharashtra.
                             </p>
                         </section>
 
                         <section>
                             <h2 className="text-xl font-semibold">7. Contact</h2>
-                            <p className="text-muted-foreground">
+                            <p className="text-sm md:text-base text-muted-foreground">
                                 Questions about these Terms should be sent to: <a href="mailto:legal@shareholdervoting.in" className="text-primary hover:underline">legal@shareholdervoting.in</a>
                             </p>
                         </section>

@@ -209,52 +209,68 @@ const handler = async (req: Request): Promise<Response> => {
         </html>
       `;
 
-      try {
-        const result = await resend.emails.send({
-          from: `${companyName} <notifications@shareholdervoting.in>`,
-          to: [recipient.email],
-          subject: isNominee
-            ? `Nomination Notification - ${meetingTitle}`
-            : `AGM Invitation & Voting Notice - ${meetingTitle}`,
-          html,
+      // Sequential Batch Processing (Prevents overloading memory and API limits)
+      const BATCH_SIZE = 10;
+      const allResults = [];
+
+      for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+        const batch = recipients.slice(i, i + BATCH_SIZE);
+        console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1} of ${Math.ceil(recipients.length / BATCH_SIZE)}...`);
+
+        const batchPromises = batch.map(async (recipient) => {
+          const isNominee = recipient.type === "nominee";
+          const emailHtml = html.replace("${recipient.name}", recipient.name)
+            .replace("${isNominee ? \"📋 Nomination Notification\" : \"🗳️ Meeting & Voting Invitation\"}", isNominee ? "📋 Nomination Notification" : "🗳️ Meeting & Voting Invitation")
+            .replace("${recipient.shares ? `Your voting shares: <strong>${recipient.shares.toLocaleString()}</strong>` : \"\"}", recipient.shares ? `Your voting shares: <strong>${recipient.shares.toLocaleString()}</strong>` : "");
+
+          try {
+            const result = await resend.emails.send({
+              from: `"${companyName}" <notifications@shareholdervoting.in>`, // Quoted name prevents header errors
+              to: [recipient.email],
+              subject: isNominee
+                ? `Nomination Notification - ${meetingTitle}`
+                : `AGM Invitation & Voting Notice - ${meetingTitle}`,
+              html: html, // The full template is already generated once per request
+            });
+
+            return { success: true, email: recipient.email, id: result.id };
+          } catch (emailError: any) {
+            console.error(`Failed to send to ${recipient.email}:`, emailError);
+            return { success: false, email: recipient.email, error: emailError?.message || "Delivery failed" };
+          }
         });
 
-        console.log(`Email sent to ${recipient.email}:`, result);
-        return { success: true, email: recipient.email };
-      } catch (emailError: any) {
-        console.error(`Failed to send email to ${recipient.email}:`, emailError);
-        return { success: false, email: recipient.email, error: emailError?.message || "Unknown error" };
+        const batchResults = await Promise.all(batchPromises);
+        allResults.push(...batchResults);
       }
-    });
 
-    const results = await Promise.all(emailPromises);
-    const successCount = results.filter(r => r.success).length;
-    const failedCount = results.filter(r => !r.success).length;
+      const successCount = allResults.filter(r => r.success).length;
+      const failedCount = allResults.filter(r => !r.success).length;
 
-    console.log(`Emails sent: ${successCount} success, ${failedCount} failed`);
+      console.log(`Job complete: ${successCount} success, ${failedCount} failed`);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        sent: successCount,
-        failed: failedCount,
-        results
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  } catch (error: any) {
-    console.error("Error in send-meeting-invites function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  }
-};
+      return new Response(
+        JSON.stringify({
+          success: true,
+          sent: successCount,
+          failed: failedCount,
+          results: allResults
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    } catch (error: any) {
+      console.error("Error in send-meeting-invites function:", error);
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+  };
 
-serve(handler);
+  serve(handler);

@@ -793,9 +793,30 @@ const VotingManagement = () => {
       console.log("Bulk email response:", data);
 
       if (data.failed > 0) {
-        toast.warning(`Sent ${data.sent} emails, but ${data.failed} failed. Check console.`);
+        toast.warning(`Sent ${data.sent} emails, but ${data.failed} failed. Check console for details.`);
       } else {
         toast.success(`Successfully sent invites to all ${data.sent} recipients.`);
+      }
+
+      // --- SYNC STATUS TO DATABASE ---
+      const successfulEmails = data.results
+        .filter((r: any) => r.success)
+        .map((r: any) => r.email);
+
+      if (successfulEmails.length > 0) {
+        // Update shareholders
+        await supabase
+          .from("shareholders")
+          .update({ is_meeting_email_sent: true })
+          .in("email", successfulEmails)
+          .eq("company_id", company.id);
+
+        // Update nominees
+        await supabase
+          .from("nominees")
+          .update({ is_email_sent: true })
+          .in("nominee_email", successfulEmails)
+          .eq("voting_session_id", votingSession.id);
       }
 
       // Update session status
@@ -806,11 +827,12 @@ const VotingManagement = () => {
 
       if (updateError) {
         console.error("Failed to update session status:", updateError);
-        toast.error("Emails sent, but failed to update status in database.");
       }
 
-      // Update local state
+      // Update local state and reload data to reflect checkmarks
       setVotingSession(prev => prev ? { ...prev, is_meeting_emails_sent: true } : null);
+      await loadShareholders(company.id);
+      await loadNominees(votingSession.id);
 
     } catch (error: any) {
       console.error("Error sending invites:", error);

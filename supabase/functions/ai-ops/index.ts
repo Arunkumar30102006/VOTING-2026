@@ -57,6 +57,12 @@ Deno.serve(async (req) => {
                 throw new Error(`Invalid action: ${action}`)
         }
 
+        // Content Truncation Protection (Prevents Groq 413 Payload Too Large)
+        const MAX_PAYLOAD_CHARS = 15000;
+        const truncatedUserPrompt = userPrompt && userPrompt.length > MAX_PAYLOAD_CHARS
+            ? userPrompt.substring(0, MAX_PAYLOAD_CHARS) + "\n\n[Content truncated due to size limits...]"
+            : userPrompt;
+
         // Call Groq API with Retry Logic
         const makeGroqRequest = async (retryCount = 0): Promise<Response> => {
             try {
@@ -70,7 +76,7 @@ Deno.serve(async (req) => {
                         model: "llama-3.3-70b-versatile",
                         messages: [
                             { role: "system", content: systemPrompt },
-                            { role: "user", content: userPrompt }
+                            { role: "user", content: truncatedUserPrompt }
                         ],
                         response_format: action === 'sentiment' ? { type: "json_object" } : undefined
                     }),

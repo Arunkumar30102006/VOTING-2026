@@ -22,10 +22,6 @@
         {
           "key": "Referrer-Policy",
           "value": "origin-when-cross-origin"
-        },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * 'self' https: wss:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:;"
         }
       ]
     }

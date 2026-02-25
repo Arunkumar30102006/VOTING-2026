@@ -16,28 +16,8 @@
   <title>Vote India Secure</title>
   <meta name="description" content="Secure E-Voting Platform for Indian Companies" />
   <meta name="author" content="Vote India Team" />
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src * 'self' https: wss:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; worker-src 'self' blob:;">
-  <script>
-    // Aggressive cleanup for mobile issues
-    (function () {
-      // 1. Clear Service Workers
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-      }
-      // 2. Clear potentially corrupt Supabase state if we are on login page
-      if (window.location.pathname.includes('login')) {
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.includes('supabase')) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-      }
-    })();
-  </script>
+  <meta name="description" content="Secure E-Voting Platform for Indian Companies" />
+  <meta name="author" content="Vote India Team" />
 
   <meta property="og:title" content="Vote India Secure" />
   <meta property="og:description" content="Secure E-Voting Platform for Indian Companies" />

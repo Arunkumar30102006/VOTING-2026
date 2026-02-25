@@ -85,11 +85,12 @@ const CompanyLogin = () => {
       } else {
         const isFetchError = err instanceof TypeError && (err.message.includes("Failed to fetch") || err.message.includes("network error"));
         if (isFetchError) {
+          const targetUrl = import.meta.env.VITE_SUPABASE_URL;
           toast.error("Network connection error. Please check your internet or if you are behind a restrictive firewall/VPN.", {
-            description: `Detail: ${err.message}. ${JSON.stringify(err)}`,
+            description: `URL: ${targetUrl}. Detail: ${err.message}. ${JSON.stringify(err)}`,
             duration: 15000,
           });
-          console.error("Fetch Error:", err);
+          console.error("Fetch Error:", err, "Target URL:", targetUrl);
         } else {
           toast.error(`Error: ${err.message || 'Unknown error'}`);
           console.error("Login Error:", err);

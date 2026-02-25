@@ -2,13 +2,24 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_BASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Use a proxy in production to bypass mobile network blocking/CORS issues
+const SUPABASE_URL = (import.meta.env.PROD && typeof window !== 'undefined')
+  ? `${window.location.origin}/supabase-proxy`
+  : SUPABASE_BASE_URL;
+
+if (!SUPABASE_ANON_KEY) {
+  console.error("VITE_SUPABASE_ANON_KEY is missing! Using publishable key fallback (may 401)");
+}
+
+const FINAL_KEY = SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient<Database>(SUPABASE_URL, FINAL_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,

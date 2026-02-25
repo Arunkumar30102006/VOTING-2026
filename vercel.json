@@ -28,6 +28,10 @@
   ],
   "rewrites": [
     {
+      "source": "/supabase-proxy/:path*",
+      "destination": "https://tpfvvuuumfuvbqkackwk.supabase.co/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

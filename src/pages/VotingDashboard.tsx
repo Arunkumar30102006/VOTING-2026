@@ -216,20 +216,13 @@ const VotingDashboard = () => {
     enabled: !!session?.id,
   });
 
-  // All Vote Hashes (for proof generation) - Restricted to when anchored
+  // Fetch Merkle Proof for the shareholder's votes
   const { data: sessionProofData } = useQuery({
-    queryKey: ["session-proof-hashes", session?.id],
+    queryKey: ["session-proof-hashes", session?.id, shareholderId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("votes")
-        .select("vote_hash, resolution_id")
-        .in("resolution_id", (resolutions || []).map(r => r.id))
-        .order("vote_hash", { ascending: true });
-      if (error) return null;
-
-      const hashes = data.map(v => v.vote_hash);
-      const tree = await MerkleTree.create(hashes);
-      return { tree, hashes };
+      // We will now rely on the 'votes' table having the leaf_index 
+      // and checking the 'block_anchors' table for the tree
+      return { anchored: !!anchorData };
     },
     enabled: !!session?.id && !!anchorData,
   });
@@ -278,11 +271,27 @@ const VotingDashboard = () => {
       else if (val === "AGAINST") voteValue = "AGAINST";
       else if (val === "ABSTAIN") voteValue = "ABSTAIN";
 
-      // Generate Merkle Proof if session is anchored
-      if (sessionProofData?.tree) {
-        const leafIndex = sessionProofData.hashes.indexOf(voteRecord.vote_hash);
-        if (leafIndex !== -1) {
-          proof = sessionProofData.tree.getProof(leafIndex);
+      // Build Merkle Proof if session is anchored
+      if (anchorData?.merkle_tree?.layers) {
+        const leafIndex = voteRecord.leaf_index;
+        if (leafIndex !== undefined && leafIndex !== null) {
+          // Reconstruct proof from stored layers to avoid recomputing tree
+          const layers = anchorData.merkle_tree.layers;
+          const leafProof = [];
+          let idx = leafIndex;
+          for (let i = 0; i < layers.length - 1; i++) {
+            const layer = layers[i];
+            const isRightNode = idx % 2 === 1;
+            const pairIndex = isRightNode ? idx - 1 : idx + 1;
+            if (pairIndex < layer.length) {
+              leafProof.push({
+                position: isRightNode ? 'left' : 'right',
+                data: layer[pairIndex]
+              });
+            }
+            idx = Math.floor(idx / 2);
+          }
+          proof = leafProof;
         }
       }
     }

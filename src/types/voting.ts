@@ -54,6 +54,7 @@ export interface VoteRecord {
     resolution_id: string;
     vote_value: VoteType;
     vote_hash: string;
+    leaf_index?: number | null;
     created_at: string;
 }
 

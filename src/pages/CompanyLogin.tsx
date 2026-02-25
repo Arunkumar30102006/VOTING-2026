@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Building2, Mail, Lock, ArrowRight, Shield, Eye, EyeOff } from "lucide-react";
+import { Building2, Mail, Lock, ArrowRight, Shield, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -98,6 +98,40 @@ const CompanyLogin = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSystemRefresh = async () => {
+    toast.loading("Clearing system cache...");
+
+    try {
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+
+      // Clear cache storage if available
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        for (const cacheName of cacheNames) {
+          await caches.delete(cacheName);
+        }
+      }
+
+      toast.success("System refreshed! Reloading...");
+      setTimeout(() => {
+        window.location.href = window.location.pathname + '?refresh=' + Date.now();
+      }, 1000);
+    } catch (error) {
+      console.error("Refresh error:", error);
+      window.location.reload();
     }
   };
 
@@ -212,6 +246,21 @@ const CompanyLogin = () => {
                       Register your company
                     </Link>
                   </p>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Having trouble connecting on mobile?
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSystemRefresh}
+                    className="gap-2 border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Force System Refresh
+                  </Button>
                 </div>
               </CardContent>
             </Card>

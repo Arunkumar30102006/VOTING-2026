@@ -25,9 +25,10 @@ AS $$
 $$;
 
 -- 2. Harden existing functions (Fix "Function Search Path Mutable" warnings)
-ALTER FUNCTION public.has_role(uuid, text) SET search_path = public;
+-- Note: Signatures must match exactly including parameter types
+ALTER FUNCTION public.has_role(uuid, public.app_role) SET search_path = public;
 ALTER FUNCTION public.get_user_company_id(uuid) SET search_path = public;
-ALTER FUNCTION public.log_audit_event(uuid, text, text, jsonb) SET search_path = public;
+ALTER FUNCTION public.log_audit_event() SET search_path = public;
 ALTER FUNCTION public.refresh_vote_stats() SET search_path = public;
 ALTER FUNCTION public.cast_vote(uuid, text) SET search_path = public;
 ALTER FUNCTION public.update_updated_at_column() SET search_path = public;

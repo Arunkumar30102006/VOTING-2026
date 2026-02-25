@@ -27,12 +27,14 @@
       }
       // 2. Clear potentially corrupt Supabase state if we are on login page
       if (window.location.pathname.includes('login')) {
+        const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key && key.includes('supabase')) {
-            localStorage.removeItem(key);
+            keysToRemove.push(key);
           }
         }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
       }
     })();
   </script>

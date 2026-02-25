@@ -65,7 +65,8 @@ serve(async (req) => {
           to: [email],
           subject: "Your Secure Login OTP",
           headers: {
-            "Precedence": "bulk",
+            "X-Priority": "1",
+            "Importance": "high",
             "X-Entity-Ref-ID": `otp-${shareholder_id}`
           },
           html: `

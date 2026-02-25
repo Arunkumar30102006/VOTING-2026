@@ -59,6 +59,10 @@ serve(async (req) => {
           from: "Vote India <admin@shareholdervoting.in>",
           to: [email],
           subject: "Company Registration Verification Code",
+          headers: {
+            "X-Priority": "1",
+            "Importance": "high",
+          },
           html: `
 <!DOCTYPE html>
 <html>

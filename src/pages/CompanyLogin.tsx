@@ -86,11 +86,13 @@ const CompanyLogin = () => {
         const isFetchError = err instanceof TypeError && (err.message.includes("Failed to fetch") || err.message.includes("network error"));
         if (isFetchError) {
           toast.error("Network connection error. Please check your internet or if you are behind a restrictive firewall/VPN.", {
-            description: "On mobile, this can often be due to Content Security Policy or stale data. Refresh and try again.",
-            duration: 10000,
+            description: `Detail: ${err.message}. ${JSON.stringify(err)}`,
+            duration: 15000,
           });
+          console.error("Fetch Error:", err);
         } else {
-          toast.error("An unexpected error occurred");
+          toast.error(`Error: ${err.message || 'Unknown error'}`);
+          console.error("Login Error:", err);
         }
       }
     } finally {

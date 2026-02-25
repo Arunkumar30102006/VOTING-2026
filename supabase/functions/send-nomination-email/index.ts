@@ -1,38 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
-    if (req.method === "OPTIONS") {
-        return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { name, email, designation, companyName, qualification, bio } = await req.json();
+
+    if (!email || !name || !companyName) {
+      throw new Error("Missing required fields: email, name, or companyName");
     }
 
-    try {
-        const { name, email, designation, companyName, qualification, bio } = await req.json();
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not set");
+    }
 
-        if (!email || !name || !companyName) {
-            throw new Error("Missing required fields: email, name, or companyName");
-        }
-
-        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-        if (!RESEND_API_KEY) {
-            throw new Error("RESEND_API_KEY is not set");
-        }
-
-        const res = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-                from: "Vote India <admin@shareholdervoting.in>",
-                to: [email],
-                subject: `Nomination Alert: You have been nominated as ${designation || "Director"}`,
-                html: `
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Vote India Secure <notifications@shareholdervoting.in>",
+        to: [email],
+        subject: `Nomination Alert: You have been nominated as ${designation || "Director"}`,
+        headers: {
+          "Precedence": "bulk",
+          "X-Entity-Ref-ID": `nomination-${email}`
+        },
+        html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -99,27 +103,27 @@ serve(async (req) => {
 </body>
 </html>
         `,
-            }),
-        });
+      }),
+    });
 
-        if (!res.ok) {
-            const errorText = await res.text();
-            console.error("Resend API Error:", errorText);
-            throw new Error(`Email sending failed: ${errorText}`);
-        }
-
-        const data = await res.json();
-        console.log("Nomination email sent successfully:", data);
-
-        return new Response(
-            JSON.stringify({ success: true, message: "Nomination email sent" }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-    } catch (error: any) {
-        console.error(error);
-        return new Response(
-            JSON.stringify({ success: false, message: error.message }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Resend API Error:", errorText);
+      throw new Error(`Email sending failed: ${errorText}`);
     }
+
+    const data = await res.json();
+    console.log("Nomination email sent successfully:", data);
+
+    return new Response(
+      JSON.stringify({ success: true, message: "Nomination email sent" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error: any) {
+    console.error(error);
+    return new Response(
+      JSON.stringify({ success: false, message: error.message }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 });

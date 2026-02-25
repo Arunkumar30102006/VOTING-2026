@@ -83,7 +83,15 @@ const CompanyLogin = () => {
         });
         setErrors(fieldErrors);
       } else {
-        toast.error("An unexpected error occurred");
+        const isFetchError = err instanceof TypeError && (err.message.includes("Failed to fetch") || err.message.includes("network error"));
+        if (isFetchError) {
+          toast.error("Network connection error. Please check your internet or if you are behind a restrictive firewall/VPN.", {
+            description: "On mobile, this can often be due to Content Security Policy or stale data. Refresh and try again.",
+            duration: 10000,
+          });
+        } else {
+          toast.error("An unexpected error occurred");
+        }
       }
     } finally {
       setIsLoading(false);

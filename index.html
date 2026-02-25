@@ -17,7 +17,7 @@
   <meta name="description" content="Secure E-Voting Platform for Indian Companies" />
   <meta name="author" content="Vote India Team" />
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; worker-src 'self' blob:;">
+    content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss: https://tpfvvuuumfuvbqkackwk.supabase.co; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; worker-src 'self' blob:;">
 
   <meta property="og:title" content="Vote India Secure" />
   <meta property="og:description" content="Secure E-Voting Platform for Indian Companies" />
@@ -74,19 +74,6 @@
   </div>
 
   <script type="module" src="/src/main.tsx"></script>
-  <script>
-    // Force unregister any existing service worker to clear stale cache
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        for (let registration of registrations) {
-          registration.unregister();
-          console.log('Service Worker unregistered successfully');
-        }
-      }).catch(function (err) {
-        console.warn('Service Worker unregistration failed: ', err);
-      });
-    }
-  </script>
 </body>
 
 </html>

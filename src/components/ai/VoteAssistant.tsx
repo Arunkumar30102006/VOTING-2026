@@ -9,6 +9,7 @@ import { MessageCircle, Send, X, Loader2, Bot, User, Mic, MicOff, Volume2, Volum
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { env } from '@/config/env';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -165,22 +166,12 @@ export const VoteAssistant = () => {
         const shouldRead = isSpeaking;
 
         try {
-            const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-            if (!apiKey) {
-                throw new Error("Missing VITE_GROQ_API_KEY in .env");
-            }
-
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        {
-                            role: "system", content: `You are the AI Assistant for 'Vote India Secure', a blockchain-based e-voting platform for Indian companies.
+            const { data, error } = await supabase.functions.invoke('ai-ops', {
+                body: {
+                    action: 'chat',
+                    payload: {
+                        message: textToSend,
+                        context: `You are the AI Assistant for 'Vote India Secure', a blockchain-based e-voting platform for Indian companies.
 
 YOUR KNOWLEDGE BASE:
 1. **User Types**:
@@ -205,27 +196,17 @@ INSTRUCTIONS:
 - Answer ONLY about this website processes.
 - Do NOT describe generic real-world paper ballot voting.
 - If asked "How do I vote?", give the specific 7-step digital process above.
-- Be concise, professional, and helpful.` },
-                        { role: "user", content: textToSend }
-                    ]
-                })
+- Be concise, professional, and helpful.`
+                    }
+                },
+                headers: {
+                    "Authorization": `Bearer ${env.SUPABASE_ANON_KEY}`
+                }
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                if (response.status === 429) {
-                    throw new Error("Rate limit exceeded. Please wait a moment and try again.");
-                }
-                throw new Error(errorData.error?.message || `API Error: ${response.status}`);
-            }
+            if (error) throw error;
 
-            const data = await response.json();
-
-            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-                throw new Error("Invalid response from Groq API");
-            }
-
-            const responseText = data.choices[0].message.content;
+            const responseText = data.result;
             setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
 
             if (shouldRead) {

@@ -58,7 +58,8 @@ Deno.serve(async (req) => {
         }
 
         // Content Truncation Protection (Prevents Groq 413 Payload Too Large)
-        const MAX_PAYLOAD_CHARS = 15000;
+        // Llama 3.3 has a 128k context window, setting safety limit to 100k
+        const MAX_PAYLOAD_CHARS = 100000;
         const truncatedUserPrompt = userPrompt && userPrompt.length > MAX_PAYLOAD_CHARS
             ? userPrompt.substring(0, MAX_PAYLOAD_CHARS) + "\n\n[Content truncated due to size limits...]"
             : userPrompt;

@@ -66,211 +66,180 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No recipients provided");
     }
 
-    const emailPromises = recipients.map(async (recipient) => {
-      const isNominee = recipient.type === "nominee";
-
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-            <!-- Header -->
-            <tr>
-              <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 50%, #f59e0b 100%); padding: 40px 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">
-                  ${isNominee ? "📋 Nomination Notification" : "🗳️ Meeting & Voting Invitation"}
-                </h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0; font-size: 16px;">
-                  ${companyName}
-                </p>
-              </td>
-            </tr>
-            
-            <!-- Main Content -->
-            <tr>
-              <td style="padding: 40px 30px;">
-                <p style="color: #1e3a5f; font-size: 18px; margin: 0 0 20px;">
-                  Dear ${recipient.name},
-                </p>
-                
-                ${isNominee ? `
-                  <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-                    We are pleased to inform you that you have been <strong style="color: #f59e0b;">nominated</strong> for the upcoming voting session. Please join the online meeting at the scheduled time.
-                  </p>
-                ` : `
-                  <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-                    You are invited to participate in the <strong style="color: #1e3a5f;">Annual General Meeting (AGM)</strong> and exercise your voting rights. ${recipient.shares ? `Your voting shares: <strong>${recipient.shares.toLocaleString()}</strong>` : ""}
-                  </p>
-                `}
-                
-                <!-- Meeting Details Card -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; margin: 25px 0; border: 1px solid #e2e8f0;">
-                  <tr>
-                    <td style="padding: 25px;">
-                      <h2 style="color: #1e3a5f; font-size: 18px; margin: 0 0 20px; border-bottom: 2px solid #f59e0b; padding-bottom: 10px;">
-                        📅 Meeting Details
-                      </h2>
-                      
-                      <table width="100%" cellpadding="0" cellspacing="0">
-                        <tr>
-                          <td style="padding: 8px 0; color: #718096; font-size: 14px; width: 120px;">Meeting Title:</td>
-                          <td style="padding: 8px 0; color: #1e3a5f; font-size: 14px; font-weight: 600;">${meetingTitle}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 8px 0; color: #718096; font-size: 14px;">Platform:</td>
-                          <td style="padding: 8px 0; color: #1e3a5f; font-size: 14px; font-weight: 600; text-transform: capitalize;">${meetingPlatform}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 8px 0; color: #718096; font-size: 14px;">Start Time:</td>
-                          <td style="padding: 8px 0; color: #10b981; font-size: 14px; font-weight: 600;">${formatDateTime(startDate)} IST</td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 8px 0; color: #718096; font-size: 14px;">End Time:</td>
-                          <td style="padding: 8px 0; color: #ef4444; font-size: 14px; font-weight: 600;">${formatDateTime(endDate)} IST</td>
-                        </tr>
-                        ${meetingPassword ? `
-                        <tr>
-                          <td style="padding: 8px 0; color: #718096; font-size: 14px;">Password:</td>
-                          <td style="padding: 8px 0; color: #1e3a5f; font-size: 14px; font-weight: 600; font-family: monospace; background: #e2e8f0; padding: 4px 8px; border-radius: 4px; display: inline-block;">${meetingPassword}</td>
-                        </tr>
-                        ` : ""}
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-                
-                <!-- Join Button -->
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="text-align: center; padding: 20px 0;">
-                      <a href="${meetingLink}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
-                        🔗 Join Meeting
-                      </a>
-                      <p style="margin-top: 15px; color: #64748b; font-size: 12px;">
-                        Or copy this link: <br>
-                        <a href="${meetingLink}" style="color: #3b82f6; word-break: break-all;">${meetingLink}</a>
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-                
-                ${votingInstructions ? `
-                <!-- Voting Instructions -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fffbeb; border-radius: 12px; margin: 25px 0; border: 1px solid #fcd34d;">
-                  <tr>
-                    <td style="padding: 25px;">
-                      <h3 style="color: #92400e; font-size: 16px; margin: 0 0 15px;">
-                        📋 Voting Instructions
-                      </h3>
-                      <p style="color: #78350f; font-size: 14px; line-height: 1.6; margin: 0; white-space: pre-line;">
-                        ${votingInstructions}
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-                ` : ""}
-                
-                <!-- Important Notes -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0fdf4; border-radius: 12px; margin: 25px 0; border: 1px solid #86efac;">
-                  <tr>
-                    <td style="padding: 25px;">
-                      <h3 style="color: #166534; font-size: 16px; margin: 0 0 15px;">
-                        ✅ Important Notes
-                      </h3>
-                      <ul style="color: #166534; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-                        <li>Please join the meeting 5-10 minutes before the scheduled start time</li>
-                        <li>Ensure stable internet connectivity for uninterrupted participation</li>
-                        <li>Keep this email for your reference</li>
-                        ${!isNominee ? "<li>Your vote will be recorded securely and is final once submitted</li>" : ""}
-                      </ul>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            
-            <!-- Footer -->
-            <tr>
-              <td style="background-color: #1e3a5f; padding: 30px; text-align: center;">
-                <p style="color: rgba(255,255,255,0.8); font-size: 14px; margin: 0 0 10px;">
-                  This is an automated message from ${companyName}
-                </p>
-                <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin: 0;">
-                  © ${new Date().getFullYear()} ${companyName}. All rights reserved.
-                </p>
-              </td>
-            </tr>
-          </table>
-        </body>
-        </html>
-      `;
-
-      // Sequential Batch Processing (Prevents overloading memory and API limits)
-      const BATCH_SIZE = 10;
-      const allResults = [];
-
-      for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-        const batch = recipients.slice(i, i + BATCH_SIZE);
-        console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1} of ${Math.ceil(recipients.length / BATCH_SIZE)}...`);
-
-        const batchPromises = batch.map(async (recipient) => {
-          const isNominee = recipient.type === "nominee";
-          const emailHtml = html.replace("${recipient.name}", recipient.name)
-            .replace("${isNominee ? \"📋 Nomination Notification\" : \"🗳️ Meeting & Voting Invitation\"}", isNominee ? "📋 Nomination Notification" : "🗳️ Meeting & Voting Invitation")
-            .replace("${recipient.shares ? `Your voting shares: <strong>${recipient.shares.toLocaleString()}</strong>` : \"\"}", recipient.shares ? `Your voting shares: <strong>${recipient.shares.toLocaleString()}</strong>` : "");
-
-          try {
-            const result = await resend.emails.send({
-              from: `"${companyName}" <notifications@shareholdervoting.in>`, // Quoted name prevents header errors
-              to: [recipient.email],
-              subject: isNominee
-                ? `Nomination Notification - ${meetingTitle}`
-                : `AGM Invitation & Voting Notice - ${meetingTitle}`,
-              html: html, // The full template is already generated once per request
-            });
-
-            return { success: true, email: recipient.email, id: result.id };
-          } catch (emailError: any) {
-            console.error(`Failed to send to ${recipient.email}:`, emailError);
-            return { success: false, email: recipient.email, error: emailError?.message || "Delivery failed" };
-          }
-        });
-
-        const batchResults = await Promise.all(batchPromises);
-        allResults.push(...batchResults);
+    // 1. Generate Base Email Template
+    const getHtmlTemplate = (recipientName: string, isNominee: boolean, totalShares?: number) => `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${meetingTitle}</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <!-- Header Area -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 48px 32px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.025em;">
+                ${isNominee ? "📋 Nomination Notification" : "🗳️ Meeting & Voting Invitation"}
+              </h1>
+              <div style="height: 4px; width: 40px; background: #f59e0b; margin: 16px auto;"></div>
+              <p style="color: #bfdbfe; margin: 0; font-size: 16px; font-weight: 500;">
+                ${companyName}
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px 32px;">
+              <p style="font-size: 18px; font-weight: 600; color: #0f172a; margin: 0 0 16px;">
+                Dear ${recipientName},
+              </p>
+              
+              <p style="font-size: 16px; line-height: 1.6; color: #475569; margin: 0 0 24px;">
+                ${isNominee
+        ? `We are pleased to inform you that you have been <strong>nominated</strong> for the upcoming voting session. Your participation is requested at the scheduled meeting.`
+        : `You are cordially invited to participate in the <strong>Annual General Meeting (AGM)</strong> and exercise your voting rights. ${totalShares ? `Represents: <strong>${totalShares.toLocaleString()}</strong> shares.` : ""}`
       }
+              </p>
+              
+              <!-- Meeting Details Block -->
+              <div style="background-color: #f1f5f9; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; margin-bottom: 32px;">
+                <h2 style="color: #1e3a8a; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 16px; font-weight: 700;">
+                  📅 Meeting Logistics
+                </h2>
+                
+                <table width="100%" style="font-size: 14px; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b; width: 100px;">Session:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600;">${meetingTitle}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b;">Starts:</td>
+                    <td style="padding: 8px 0; color: #059669; font-weight: 600;">${formatDateTime(startDate)} IST</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b;">Platform:</td>
+                    <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-transform: capitalize;">${meetingPlatform}</td>
+                  </tr>
+                  ${meetingPassword ? `
+                  <tr>
+                    <td style="padding: 8px 0; color: #64748b;">Passcode:</td>
+                    <td style="padding: 8px 0;"><code style="background: #cbd5e1; padding: 2px 6px; border-radius: 4px; color: #0f172a;">${meetingPassword}</code></td>
+                  </tr>
+                  ` : ""}
+                </table>
+              </div>
+              
+              <!-- Primary Action -->
+              <div style="text-align: center; margin-bottom: 32px;">
+                <a href="${meetingLink}" style="display: inline-block; background-color: #f59e0b; color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-size: 16px; font-weight: 700; box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);">
+                  🔗 Join Online Meeting
+                </a>
+                <p style="margin-top: 16px; color: #94a3b8; font-size: 12px;">
+                  Direct Link: <a href="${meetingLink}" style="color: #3b82f6;">${meetingLink}</a>
+                </p>
+              </div>
 
-      const successCount = allResults.filter(r => r.success).length;
-      const failedCount = allResults.filter(r => !r.success).length;
+              ${votingInstructions ? `
+                <!-- Important Guidelines -->
+                <div style="border-left: 4px solid #f59e0b; padding: 16px 20px; background: #fffbeb; margin-bottom: 32px;">
+                  <h3 style="color: #92400e; font-size: 15px; margin: 0 0 8px; font-weight: 700;">Voting Instructions</h3>
+                  <p style="color: #b45309; font-size: 13px; line-height: 1.5; margin: 0; white-space: pre-line;">${votingInstructions}</p>
+                </div>
+              ` : ""}
 
-      console.log(`Job complete: ${successCount} success, ${failedCount} failed`);
+              <div style="font-size: 13px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 24px; text-align: center;">
+                Please ensure you join with a stable internet connection. Credentials for voting will be requested during the session.
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="color: #64748b; font-size: 12px; margin: 0 0 8px;">
+                Sent on behalf of <strong>${companyName}</strong> via Vote India Secure
+              </p>
+              <p style="color: #94a3b8; font-size: 11px; margin: 0;">
+                To ensure delivery, add notifications@shareholdervoting.in to your contacts.
+              </p>
+              <div style="margin-top: 16px; font-size: 10px; color: #cbd5e1;">
+                &copy; ${new Date().getFullYear()} shareholdervoting.in
+              </div>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          sent: successCount,
-          failed: failedCount,
-          results: allResults
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
+    // 2. Sequential Batch Processing (Optimized for Deliverability)
+    const BATCH_SIZE = 5; // Reduced batch size for even better reliability
+    const allResults = [];
+
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+      const batch = recipients.slice(i, i + BATCH_SIZE);
+      console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1} of ${Math.ceil(recipients.length / BATCH_SIZE)}...`);
+
+      const batchPromises = batch.map(async (recipient) => {
+        try {
+          const isNominee = recipient.type === "nominee";
+          const res = await resend.emails.send({
+            from: `"${companyName} (via Vote India)" <notifications@shareholdervoting.in>`,
+            to: recipient.email,
+            subject: isNominee
+              ? `[Nomination] - ${meetingTitle} - ${companyName}`
+              : `[Action Required] AGM & Voting Invite - ${companyName}`,
+            html: getHtmlTemplate(recipient.name, isNominee, recipient.shares),
+            headers: {
+              "X-Entity-Ref-ID": `${votingSessionId}-${recipient.email}`,
+              "Precedence": "bulk"
+            }
+          });
+
+          return { success: true, email: recipient.email, id: res.id };
+        } catch (emailError: any) {
+          console.error(`Failed delivery to ${recipient.email}:`, emailError);
+          return { success: false, email: recipient.email, error: emailError?.message || "Delivery failed" };
         }
-      );
-    } catch (error: any) {
-      console.error("Error in send-meeting-invites function:", error);
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      allResults.push(...batchResults);
+
+      // Short delay between batches to respect SMTP reputation
+      if (i + BATCH_SIZE < recipients.length) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
-  };
 
-  serve(handler);
+    const successCount = allResults.filter(r => r.success).length;
+    const failedCount = allResults.filter(r => !r.success).length;
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        sent: successCount,
+        failed: failedCount,
+        results: allResults
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  } catch (error: any) {
+    console.error("Error in send-meeting-invites function:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
+};
+
+serve(handler);

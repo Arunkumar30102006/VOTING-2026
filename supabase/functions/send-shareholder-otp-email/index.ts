@@ -61,9 +61,13 @@ serve(async (req) => {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "Vote India <admin@shareholdervoting.in>",
+          from: "Vote India Secure <notifications@shareholdervoting.in>",
           to: [email],
           subject: "Your Secure Login OTP",
+          headers: {
+            "Precedence": "bulk",
+            "X-Entity-Ref-ID": `otp-${shareholder_id}`
+          },
           html: `
 <!DOCTYPE html>
 <html>

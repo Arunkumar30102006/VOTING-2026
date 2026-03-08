@@ -325,7 +325,7 @@
         "voting_management_sec_title": "Security & Compliance",
         "voting_management_sec_desc": "All voting data is encrypted and securely stored. Meeting invitations are sent with unique identifiers for audit purposes. Votes are final and cannot be modified once submitted, ensuring the integrity of the corporate voting process.",
         "voting_management_res_title": "Voting Results",
-        "voting_management_res_btn_pdf": "Download PDF",
+        "voting_management_res_btn_download": "Download Detailed Voting Results",
         "voting_management_res_empty_session": "Please create a voting session first.",
         "voting_management_res_locked_title": "Results Locked",
         "voting_management_res_locked_desc": "Voting results will be available after the session ends on",

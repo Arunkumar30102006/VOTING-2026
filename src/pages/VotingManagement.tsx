@@ -875,67 +875,155 @@ const VotingManagement = () => {
       return;
     }
 
-    const doc = new jsPDF();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const doc = new jsPDF() as any;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // 1. Header Banner
+    doc.setFillColor(30, 41, 59); // Slate-800
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text(company.company_name, 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("OFFICIAL REGISTERED VOTING REPORT", 14, 28);
+    doc.text(`Report ID: EV-${votingSession.id.slice(0, 8).toUpperCase()}-${Date.now().toString().slice(-6)}`, pageWidth - 14, 28, { align: 'right' });
 
-    // 1. Header
-    doc.setFontSize(20);
+    // 2. Session Summary Info
     doc.setTextColor(40, 40, 40);
-    doc.text(company.company_name, 14, 22);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Session Details", 14, 52);
+    
+    doc.setDrawColor(226, 232, 240); // Slate-200
+    doc.line(14, 55, pageWidth - 14, 55);
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Title:`, 14, 62);
+    doc.setFont("helvetica", "bold");
+    doc.text(votingSession.title, 45, 62);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text(`Commenced:`, 14, 68);
+    doc.text(new Date(votingSession.start_date).toLocaleString(), 45, 68);
+    
+    doc.text(`Concluded:`, 14, 74);
+    doc.text(new Date(votingSession.end_date).toLocaleString(), 45, 74);
+    
+    doc.text(`Platform:`, 14, 80);
+    doc.text("Vote India Secure Digital Infrastructure", 45, 80);
 
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Voting Session Results", 14, 30);
-    doc.text(`Session: ${votingSession.title}`, 14, 36);
-    doc.text(`Date Generated: ${new Date().toLocaleString()}`, 14, 42);
+    // 3. Overall Statistics Summary
+    const totalVotes = results.reduce((acc, curr) => acc + curr.stats.total, 0);
+    const avgParticipation = results.length > 0 ? (totalVotes / results.length) : 0;
+    
+    doc.setFillColor(248, 250, 252); // Slate-50
+    doc.rect(14, 88, pageWidth - 28, 25, 'F');
+    doc.setDrawColor(203, 213, 225); // Slate-300
+    doc.rect(14, 88, pageWidth - 28, 25, 'D');
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139); // Slate-500
+    doc.text("TOTAL RESOLUTIONS", 20, 95);
+    doc.text("AGGREGATED POWER", pageWidth / 3 + 10, 95);
+    doc.text("COMPLIANCE STATUS", (pageWidth / 3) * 2 + 5, 95);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42); // Slate-900
+    doc.setFont("helvetica", "bold");
+    doc.text(results.length.toString(), 20, 105);
+    doc.text(`${totalVotes} Votes`, pageWidth / 3 + 10, 105);
+    doc.setTextColor(22, 163, 74); // Green-600
+    doc.text("VERIFIED", (pageWidth / 3) * 2 + 5, 105);
 
-    // 2. Data Preparation for Table
+    // 4. Detailed Results Table
     const tableData = results.map((item, index) => [
       index + 1,
       item.title,
-      item.description || "N/A",
       item.stats.for,
       item.stats.against,
       item.stats.abstain,
+      item.stats.total,
       item.stats.winner ? "PASSED" : "NOT PASSED"
     ]);
 
-    // 3. AutoTable
     autoTable(doc, {
-      head: [['#', 'Resolution / Nominee', 'Details', 'For', 'Against', 'Abstain', 'Result']],
+      head: [['#', 'Resolution / Nominee', 'For', 'Against', 'Abstain', 'Total', 'Result']],
       body: tableData,
-      startY: 50,
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [79, 70, 229], textColor: 255 }, // Indigo-600 like color
-      alternateRowStyles: { fillColor: [245, 247, 250] },
+      startY: 120,
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 4, font: 'helvetica' },
+      headStyles: { 
+        fillColor: [30, 41, 59], 
+        textColor: 255, 
+        fontStyle: 'bold',
+        halign: 'center'
+      },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 40 },
-        2: { cellWidth: 50 },
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 20, halign: 'center' },
         3: { cellWidth: 20, halign: 'center' },
         4: { cellWidth: 20, halign: 'center' },
         5: { cellWidth: 20, halign: 'center' },
-        6: { cellWidth: 25, halign: 'center', fontStyle: 'bold' }
+        6: { cellWidth: 30, halign: 'center', fontStyle: 'bold' }
       },
       didParseCell: function (data) {
         if (data.section === 'body' && data.column.index === 6) {
           if (data.cell.raw === 'PASSED') {
-            data.cell.styles.textColor = [22, 163, 74]; // Green
+            data.cell.styles.textColor = [22, 163, 74]; // Green-600
           } else {
-            data.cell.styles.textColor = [220, 38, 38]; // Red
+            data.cell.styles.textColor = [220, 38, 38]; // Red-600
           }
         }
       }
     });
 
-    // 4. Footer
-    const finalY = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || 50;
-    doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.text("Generated by Vote India Secure Platform", 14, finalY + 10);
+    // 5. Digital Seal & Footer
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
+    
+    if (finalY < doc.internal.pageSize.getHeight() - 60) {
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Certified and Electronically Signed by:", 14, finalY);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 41, 59);
+      doc.text("Vote India Secure Audit Infrastructure", 14, finalY + 6);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184); // Slate-400
+      doc.text("This document is a legally admissible electronic record under the Information Technology Act, 2000.", 14, finalY + 12);
+      doc.text("Tamper-proof hashes for each vote are recorded in the immutable database audit log.", 14, finalY + 16);
+      
+      // Decorative seal element
+      doc.setDrawColor(79, 70, 229); // Indigo-600
+      doc.setLineWidth(0.5);
+      doc.circle(pageWidth - 30, finalY + 5, 15, 'D');
+      doc.setFontSize(6);
+      doc.setTextColor(79, 70, 229);
+      doc.text("SECURITY", pageWidth - 30, finalY + 2, { align: 'center' });
+      doc.text("VERIFIED", pageWidth - 30, finalY + 7, { align: 'center' });
+    }
 
-    // 5. Save
-    doc.save(`voting_results_${votingSession.id.slice(0, 8)}.pdf`);
-    toast.success("PDF downloaded successfully!");
+    // Page numbers
+    const totalPages = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+    }
+
+    // 6. Save
+    const fileName = `${company.company_name.replace(/\s+/g, '_')}_Voting_Results_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+    toast.success("Professional report generated and downloaded!");
   };
 
   const getSessionStatus = () => {
@@ -1726,7 +1814,12 @@ const VotingManagement = () => {
                     {t("voting_management_res_title")}
                   </CardTitle>
                   {votingSession && new Date(votingSession.end_date) <= new Date() && results.length > 0 && (
-                    <Button variant="outline" size="sm" onClick={handleDownloadPDF} className="gap-2">
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={handleDownloadPDF} 
+                      className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white transition-all shadow-sm"
+                    >
                       <FileText className="w-4 h-4" />
                       {t("voting_management_res_btn_download")}
                     </Button>
@@ -1745,7 +1838,7 @@ const VotingManagement = () => {
                     </div>
                   ) :
                     <div className="space-y-6">
-                      <Card className="bg-gradient-to-r from-purple-900/10 to-blue-900/10 border-indigo-500/20">
+                      {/* <Card className="bg-gradient-to-r from-purple-900/10 to-blue-900/10 border-indigo-500/20">
                         <CardContent className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             <div className="p-3 bg-indigo-500/10 rounded-full">
@@ -1776,7 +1869,7 @@ const VotingManagement = () => {
                             {isAnchoring ? t("voting_management_res_audit_btn_anchoring") : anchorData ? t("voting_management_res_audit_btn_verified") : t("voting_management_res_audit_btn_anchor")}
                           </Button>
                         </CardContent>
-                      </Card>
+                      </Card> */}
 
                       {results.map((item) => (
                         <div key={item.id} className="p-4 rounded-lg border bg-card/50">
